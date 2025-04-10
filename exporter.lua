@@ -1,4 +1,4 @@
-local computer = require("computer")
+sorFocal computer = require("computer")
 local component = require("component")
 local config = require("config")
 local internet = require("internet")
@@ -228,18 +228,22 @@ local function exportAllMachines()
             
             local x, y, z = machine.getCoordinates()
             local coord = string.format("%s | %s | %s", x, y, z)
-            coord = coord:gsub(" ", "\\ "):gsub("|", "\\|")
+            coord = coord:gsub(" ", "\ "):gsub("|", "\|")
+
+            local fields = {}
+            table.insert(fields, string.format('%s="%s"', "max_energy_income", machine.getInputVoltage()))
             
             local sensorData = machine.getSensorInformation()
-            --fields = parseSensorData(sensorData)
-            local fields = parseOnlySelected(sensorData)
+            --local sensorFields = parseSensorData(sensorData)
+            local sensorFields = parseOnlySelected(sensorData)
             -- Use name as the machine tag
             local line = string.format(
-                "multiblocks,machine=%s,coord=%s,owner=%s %s",
+                "multiblocks,machine=%s,coord=%s,owner=%s %s%s",
                 name,
                 coord,
                 owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
-                fields
+                table.concat(fields, ",")
+                sensorFields
             )
 
             postString = postString .. line .. "\n"
