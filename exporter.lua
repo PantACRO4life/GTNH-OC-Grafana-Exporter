@@ -177,31 +177,27 @@ local function exportAllMachines()
             -- Get the machine's coordinates
             -- local coords = machine.getCoordinates() or "Unknown"
             local coords = table.concat({machine.getCoordinates()}, " | ")
-            
-            -- Get sensor information
-            -- local sensorInfo = machine.getSensorInformation() or "No sensor data"
-  
+
             postString = postString .. config.multiblockMeasurement .. 
                 " machine=" .. name ..  
                 -- ",owner=" .. owner ..
                 ",coord=\"" .. coords .. "\""
             
+            -- Get sensor information
+            local sensorData = machine.getSensorInformation() or "No sensor data"
+            local fields = {}
             for _, line in ipairs(sensorData) do
-                local key, value = string.match(line, "^(.-):%s*(.+)$")
+                local key, value = line:match("^(.-):%s*(.*)$")
                 if key and value then
-                    key = sanitize(key:lower():gsub(" ", "_"))
-                    value = value:gsub(",", ".") -- remove commas from numbers
-                    --if key == "problems" or key == "max_energy_income" or key == "heat_capacity" then
-                        -- whatever
-                    --end
-                    -- Optional: try converting to number
-                    local num = tonumber(value)
-                    if num then
-                        postString = postString .. "," .. key .. "=" .. value
-                    end
-                end    
-                postString = postString .. "\n"
+                    -- Clean up the key: replace spaces with underscores
+                    key = key:gsub("%s+", "_")
+                    -- Escape quotes in value (if any)
+                    value = value:gsub('"', '\\"')
+                    -- Format as key="value"
+                    table.insert(fields, string.format('%s="%s"', key, value))
+                end
             end
+            postString = postString .. table.concat(fields, ",")
         end
     end
     
