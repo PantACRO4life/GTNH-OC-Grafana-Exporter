@@ -175,22 +175,37 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             
             -- Get the machine's coordinates
-            --local coords = machine.getCoordinates() or "Unknown"
-            --local coordinates = machine.getCoordinates()
-
-            --for i, v in ipairs(coordinates) do
-            --    coordinates[i] = tostring(v)  -- Convert each value to a string
-            --end
-
-            --local result = table.concat(coordinates, ", ")
+            local coords = machine.getCoordinates() or "Unknown"
+            local coordinates = ""
+            for i, v in ipairs(coords) do
+                coordinates = coordinates .. "_" .. tostring(v)  -- Convert each value to a string
+            end
             
             -- Get sensor information
-            --local sensorInfo = machine.getSensorInformation() or "No sensor data"
+            -- local sensorInfo = machine.getSensorInformation() or "No sensor data"
   
-        postString = postString .. config.multiblockMeasurement .. 
-            " machine=" .. name .. ",owner=" .. owner .. "\n" -- ",coord=\"" .. coords .. "\"\n" --.. ",sensor=" .. sensorInfo .. "\n"
+            postString = postString .. config.multiblockMeasurement .. 
+                " machine=" .. name ..  
+                -- ",owner=" .. owner ..
+                ",coord=\"" .. coords .. "\"
+            
+            for _, line in ipairs(sensorData) do
+                local key, value = string.match(line, "^(.-):%s*(.+)$")
+                if key and value then
+                    key = sanitize(key:lower():gsub(" ", "_"))
+                    value = value:gsub(",", ".") -- remove commas from numbers
+                    --if key == "problems" or key == "max_energy_income" or key == "heat_capacity" then
+                        -- whatever
+                    --end
+                    -- Optional: try converting to number
+                    local num = tonumber(value)
+                    if num then
+                        postString = postString .. "," .. key .. "=" .. value
+                    end
+                end    
+                postString = postString .. "\n"
+            end
         end
-        
     end
     
     if #postString > 0 then
