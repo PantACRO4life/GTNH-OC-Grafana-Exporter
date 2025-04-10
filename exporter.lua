@@ -204,10 +204,19 @@ local function parseOnlySelected(sensorData)
             problems = code
         end
     end)
-    -- Problems End
-    -- add to output
     table.insert(fields, string.format('%s="%s"', "problems", tonumber(problems)))
-
+    -- Problems End
+    
+    -- Efficiency start
+    local noParagraphMarkString = string.gsub(sensorData[5], "Â§r", "")
+    local efficiency = "0.0"
+    pcall(
+        function()
+            efficiency = string.sub(noParagraphMarkString, string.find(noParagraphMarkString, "%d+%.*%d*%s%%"))
+        end
+    )
+    table.insert(fields, string.format('%s="%s"', "efficiency", tonumber((string.gsub(efficiency, "%s%%", "")))))
+    -- Efficiency end
     -- add other fields
     
     return table.concat(fields, ",")
