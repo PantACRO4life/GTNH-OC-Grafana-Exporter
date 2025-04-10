@@ -205,7 +205,7 @@ local function exportAllMachines()
         end
     end
 
-    print(postString)
+    --print(postString)
 
     -- Send all at once
     internet.request(config.dbURL .. config.multiblockDB, postString)()
