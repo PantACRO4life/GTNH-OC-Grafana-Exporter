@@ -227,8 +227,8 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             
             local x, y, z = machine.getCoordinates()
-            local coord = string.format("%s | %s | %s", x, y, z)
-            coord = coord:gsub(" ", " "):gsub("|", "|")
+            local coord = string.format("%s_%s_%s", x, y, z)
+            --coord = coord:gsub(" ", "\\ "):gsub("|", "\\|")
 
             local fields = {}
             table.insert(fields, string.format('%s="%s"', "max_energy_income", machine.getInputVoltage()))
@@ -242,7 +242,7 @@ local function exportAllMachines()
                 name,
                 coord,
                 owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
-                table.concat(fields, ",")
+                table.concat(fields, ","),
                 sensorFields
             )
 
