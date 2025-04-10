@@ -88,29 +88,6 @@ local function exportFluids(interface)
     internet.request(config.dbURL .. config.fluidDB, postString)()
 end
 
--- Get the LSC machine based on UUID from config
-local function getLSC()
-    -- Check if the lscUUID exists in the config
-    if not config.lscUUID then
-        print("Error: lscUUID is not defined in the config file!")
-        return nil
-    end
-
-    local targetUUID = config.lscUUID
-
-    -- Iterate through components and look for the matching UUID
-    for addr, comp in pairs(component.list()) do
-        if addr == targetUUID then
-            -- Found the LSC machine with the matching UUID
-            return component.proxy(addr)
-        end
-    end
-
-    -- If no machine with the UUID is found
-    print("Error: No GT machine with UUID " .. targetUUID .. " found.")
-    return nil
-end
-
 -- Function to export energy from the LSC machine
 local function exportEnergy()
     -- Get the LSC machine
@@ -156,41 +133,6 @@ local function exportEnergy()
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
 
-local function exportMultiblockGeneric(machine)
-    local name = sanitize(machine.getName() or "unknown")
-    local address = machine.address:sub(1, 8) -- Shorten UUID for easier filtering
-    local sensorData = machine.getSensorInformation()
-
-    if sensorData == nil then return end
-
-    local postString = ""
-    for _, line in ipairs(sensorData) do
-        local key, value = string.match(line, "^(.-):%s*(.+)$")
-        if key and value then
-            key = sanitize(key:lower():gsub(" ", "_"))
-            value = value:gsub(",", "") -- remove commas from numbers
-            -- Optional: try converting to number
-            local num = tonumber(value)
-            if num then
-                postString = postString .. config.multiblockMeasurement .. ",machine=" .. name .. ",addr=" .. address .. ",key=" .. key .. " value=" .. num .. "\n"
-            end
-        end
-    end
-
-    if #postString > 0 then
-        internet.request(config.dbURL .. config.multiblockDB, postString)()
-    end
-end
-
-
-local function exportAllMultiblocks()
-    for address, machine in component.list("gt_machine") do
-        pcall(exportMultiblockGeneric, component.proxy(address))
-    end
-end
-
--- NEW IMPLEMENTATION
---------------
 
 -- Get the LSC machine based on UUID from config
 local function getLSC()
@@ -261,17 +203,6 @@ local function exportAllMachines()
         internet.request(config.dbURL .. config.multiblockDB, postString)()
     end
 end
-
--- Trigger the export for all machines
-exportAllMachines()
-
-
-
--------
--------
--------
-
-
 
 local function exportCpus(interface)
     local cpus = interface.getCpus()
@@ -348,7 +279,7 @@ local function main()
             end
         end
         if config.enableMultiblocks and os.time() > lastMultiblockTime + config.multiblockInterval then
-            exportAllMultiblocks()
+            exportAllMachines()
             lastMultiblockTime = os.time()
             if config.enableLogging then
                 print("[" .. os.time() .. "] Exported multiblock; free RAM: " .. computer.freeMemory() .. " bytes")
