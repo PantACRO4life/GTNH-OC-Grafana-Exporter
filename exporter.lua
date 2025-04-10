@@ -192,7 +192,7 @@ local function exportAllMachines()
             --print("  Coordinates: " .. coords)
             --print("  Sensor Info: " .. sensorInfo)
             
-            postString = postString .. config.multiblockMeasurement .. ",machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. ",sensor=" .. sensorInfo .. "\n"
+            postString = postString .. config.multiblockMeasurement .. ",machine=" .. sanitize(name) .. ",owner=" .. sanitize(owner) .. ",coord=" .. sanitize(coords) .. ",sensor=" .. sanitize(sensorInfo) .. "\n"
             
             -- Here you would run the commands to export data for the current machine
             -- This can be your custom export logic similar to your `exportEnergy()` function for LSC
@@ -202,8 +202,10 @@ local function exportAllMachines()
     end
     
     if #postString > 0 then
+        print("Sending to InfluxDB: " .. postString)
         internet.request(config.dbURL .. config.multiblockDB, postString)()
     end
+    print("No data to send")
 end
 
 local function exportCpus(interface)
