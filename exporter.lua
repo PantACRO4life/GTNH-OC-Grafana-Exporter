@@ -175,11 +175,8 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             
             -- Get the machine's coordinates
-            local coords = machine.getCoordinates() or "Unknown"
-            local coordinates = ""
-            for i, v in ipairs(coords) do
-                coordinates = coordinates .. "_" .. tostring(v)  -- Convert each value to a string
-            end
+            -- local coords = machine.getCoordinates() or "Unknown"
+            local coords = table.concat({machine.getCoordinates()}, " | ")
             
             -- Get sensor information
             -- local sensorInfo = machine.getSensorInformation() or "No sensor data"
@@ -187,7 +184,7 @@ local function exportAllMachines()
             postString = postString .. config.multiblockMeasurement .. 
                 " machine=" .. name ..  
                 -- ",owner=" .. owner ..
-                ",coord=\"" .. coords .. "\"
+                ",coord=\"" .. coords .. "\""
             
             for _, line in ipairs(sensorData) do
                 local key, value = string.match(line, "^(.-):%s*(.+)$")
