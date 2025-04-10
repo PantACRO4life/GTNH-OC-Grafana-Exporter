@@ -162,52 +162,55 @@ end
 -- Export data for other GT machines
 local function exportAllMachines()
     local postString = ""
-    -- Loop through all components
+    
     for addr, comp in pairs(component.list()) do
-        -- Skip the LSC machine
-        -- if addr ~= config.lscUUID then
         if comp == "gt_machine" then
             local machine = component.proxy(addr)
-            -- Get the machine's name
+
             local name = machine.getName() or "Unknown"
+            name = name:gsub("multimachine.", "")
             
-            -- Get the owner's name
             local owner = machine.getOwnerName() or "Unknown"
             
-            -- Get the machine's coordinates
-            -- local coords = machine.getCoordinates() or "Unknown"
-            local coords = table.concat({machine.getCoordinates()}, " | ")
-
-            postString = postString .. config.multiblockMeasurement .. 
-                " machine=" .. name ..  
-                -- ",owner=" .. owner ..
-                ",coord=\"" .. coords .. "\""
+            local x, y, z = machine.getCoordinates()
+            local coord = string.format("%s | %s | %s", x, y, z)
+            coord = coord:gsub(" ", "\\ "):gsub("|", "\\|")
             
-            -- Get sensor information
-            local sensorData = machine.getSensorInformation() or "No sensor data"
+            local sensorData = machine.getSensorInformation()
             local fields = {}
-            for _, line in ipairs(sensorData) do
-                local key, value = line:match("^(.-):%s*(.*)$")
-                if key and value then
-                    -- Clean up the key: replace spaces with underscores
-                    key = key:gsub("%s+", "_")
-                    -- Escape quotes in value (if any)
-                    value = value:gsub('"', '\\"')
-                    -- Format as key="value"
-                    table.insert(fields, string.format('%s="%s"', key, value))
+
+            if type(sensorData) == "table" then
+                for _, line in ipairs(sensorData) do
+                    local key, value = line:match("^(.-):%s*(.*)$")
+                    if key and value then
+                        key = key:gsub("%s+", "_")
+                        value = value:gsub('"', '\\"')
+                        table.insert(fields, string.format('%s="%s"', key, value))
+                    end
                 end
+            else
+                table.insert(fields, 'info="No_sensor_data"')
             end
-            postString = postString .. table.concat(fields, ",")
+
+            -- Use name as the machine tag
+            local line = string.format(
+                "multiblocks,machine=%s,coord=%s,owner=%s %s",
+                name,
+                coord,
+                owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
+                table.concat(fields, ",")
+            )
+
+            postString = postString .. line .. "\n"
         end
     end
-    
-    if #postString > 0 then
-        print("Sending to InfluxDB: " .. postString)
-        internet.request(config.dbURL .. config.multiblockDB, postString)()
-    end
+
     print(postString)
-    print("No data to send")
+
+    -- Send all at once
+    internet.request(config.dbURL .. config.multiblockDB, postString)()
 end
+
 
 local function exportCpus(interface)
     local cpus = interface.getCpus()
