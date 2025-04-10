@@ -158,6 +158,60 @@ local function exportEnergy()
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
 
+local function parseSensorData(sensorData)
+    local fields = {}
+
+    if type(sensorData) == "table" then
+        for _, line in ipairs(sensorData) do
+            local key, value = line:match("^(.-):%s*(.*)$")
+            if key and value then
+                key = key:gsub("%s+", "_")
+                value = value:gsub('"', '\\"')
+                table.insert(fields, string.format('%s="%s"', key, value))
+            end
+        end
+    else
+        table.insert(fields, 'info="No_sensor_data"')
+    end
+
+    return table.concat(fields, ",")
+end
+
+local function parseOnlySelected(sensorData)
+    local fields = {}
+    -- Problems start
+    -- Validate input
+    if type(sensorData) ~= "table" then return nil end
+
+    -- Determine the index of the Problems line
+    local gtPlusPlus = string.match(sensorData[5] or "", "EU") and 7 or 5
+    if gtPlusPlus == 7 then
+        gtPlusPlus = string.match(sensorData[18] or "", "Problems") and 18 or 7
+    end
+
+    local problemsString = sensorData[gtPlusPlus] or ""
+    local problems = "0"
+
+    -- Default: if "Has Problems" is present, set to 1
+    if string.match(problemsString, "Has Problems") then
+        problems = "1"
+    end
+
+    -- Try to extract "cX" (e.g. c5 → 5)
+    local ok, result = pcall(function()
+        local code = string.match(problemsString, "c(%d+)")
+        if code then
+            problems = code
+        end
+    end)
+    -- Problems End
+    -- add to output
+    table.insert(fields, string.format('%s="%s"', "problems", tonumber(problems)))
+
+    -- add other fields
+    
+    return table.concat(fields, ",")
+end
 
 -- Export data for other GT machines
 local function exportAllMachines()
@@ -177,28 +231,15 @@ local function exportAllMachines()
             coord = coord:gsub(" ", "\\ "):gsub("|", "\\|")
             
             local sensorData = machine.getSensorInformation()
-            local fields = {}
-
-            if type(sensorData) == "table" then
-                for _, line in ipairs(sensorData) do
-                    local key, value = line:match("^(.-):%s*(.*)$")
-                    if key and value then
-                        key = key:gsub("%s+", "_")
-                        value = value:gsub('"', '\\"')
-                        table.insert(fields, string.format('%s="%s"', key, value))
-                    end
-                end
-            else
-                table.insert(fields, 'info="No_sensor_data"')
-            end
-
+            --fields = parseSensorData(sensorData)
+            local fields = parseOnlySelected(sensorData)
             -- Use name as the machine tag
             local line = string.format(
                 "multiblocks,machine=%s,coord=%s,owner=%s %s",
                 name,
                 coord,
                 owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
-                table.concat(fields, ",")
+                fields
             )
 
             postString = postString .. line .. "\n"
