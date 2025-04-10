@@ -165,7 +165,8 @@ local function exportAllMachines()
     -- Loop through all components
     for addr, comp in pairs(component.list()) do
         -- Skip the LSC machine
-        if addr ~= config.lscUUID then
+        -- if addr ~= config.lscUUID then
+        if comp == "gt_machine" then
             local machine = component.proxy(addr)
             -- Get the machine's name
             local name = machine.getName() or "Unknown"
