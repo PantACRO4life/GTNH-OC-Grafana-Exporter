@@ -225,7 +225,7 @@ local function exportAllMachines()
         print("Error: LSC machine not found. Skipping machine export.")
         return
     end
-
+    local postString = ""
     -- Loop through all components
     for addr, comp in pairs(component.list()) do
         -- Skip the LSC machine
@@ -243,16 +243,22 @@ local function exportAllMachines()
             local sensorInfo = comp.getSensorInformation and comp.getSensorInformation() or "No sensor data"
 
             -- Export data for this machine
-            print("Exporting data for machine: " .. name)
-            print("  Owner: " .. owner)
-            print("  Coordinates: " .. coords)
-            print("  Sensor Info: " .. sensorInfo)
-
+            --print("Exporting data for machine: " .. name)
+            --print("  Owner: " .. owner)
+            --print("  Coordinates: " .. coords)
+            --print("  Sensor Info: " .. sensorInfo)
+            
+            postString = postString .. config.multiblockMeasurement .. ",machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. " sensor=" .. sensorInfo .. "\n"
+            
             -- Here you would run the commands to export data for the current machine
             -- This can be your custom export logic similar to your `exportEnergy()` function for LSC
             -- Example:
             -- internet.request(config.dbURL .. config.energyDB, postString)()
         end
+    end
+    
+    if #postString > 0 then
+        internet.request(config.dbURL .. config.multiblockDB, postString)()
     end
 end
 
