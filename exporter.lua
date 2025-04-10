@@ -192,7 +192,7 @@ local function exportAllMachines()
             --print("  Coordinates: " .. coords)
             --print("  Sensor Info: " .. sensorInfo)
             
-            postString = postString .. config.multiblockMeasurement .. ",machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. " sensor=" .. sensorInfo .. "\n"
+            postString = postString .. config.multiblockMeasurement .. ",machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. ",sensor=" .. sensorInfo .. "\n"
             
             -- Here you would run the commands to export data for the current machine
             -- This can be your custom export logic similar to your `exportEnergy()` function for LSC
