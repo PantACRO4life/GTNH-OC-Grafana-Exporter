@@ -88,6 +88,31 @@ local function exportFluids(interface)
     internet.request(config.dbURL .. config.fluidDB, postString)()
 end
 
+
+-- Get the LSC machine based on UUID from config
+local function getLSC()
+    -- Check if the lscUUID exists in the config
+    if not config.lscUUID then
+        print("Error: lscUUID is not defined in the config file!")
+        return nil
+    end
+
+    local targetUUID = config.lscUUID
+
+    -- Iterate through components and look for the matching UUID
+    for addr, comp in pairs(component.list()) do
+        if addr == targetUUID then
+            -- Found the LSC machine with the matching UUID
+            return component.proxy(addr)
+        end
+    end
+
+    -- If no machine with the UUID is found
+    print("Error: No GT machine with UUID " .. targetUUID .. " found.")
+    return nil
+end
+
+
 -- Function to export energy from the LSC machine
 local function exportEnergy()
     -- Get the LSC machine
@@ -133,29 +158,6 @@ local function exportEnergy()
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
 
-
--- Get the LSC machine based on UUID from config
-local function getLSC()
-    -- Check if the lscUUID exists in the config
-    if not config.lscUUID then
-        print("Error: lscUUID is not defined in the config file!")
-        return nil
-    end
-
-    local targetUUID = config.lscUUID
-
-    -- Iterate through components and look for the matching UUID
-    for addr, comp in pairs(component.list()) do
-        if addr == targetUUID then
-            -- Found the LSC machine with the matching UUID
-            return component.proxy(addr)
-        end
-    end
-
-    -- If no machine with the UUID is found
-    print("Error: No GT machine with UUID " .. targetUUID .. " found.")
-    return nil
-end
 
 -- Export data for other GT machines
 local function exportAllMachines()
