@@ -1,4 +1,4 @@
-sorFocal computer = require("computer")
+local computer = require("computer")
 local component = require("component")
 local config = require("config")
 local internet = require("internet")
