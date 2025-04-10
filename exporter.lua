@@ -175,7 +175,7 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             
             -- Get the machine's coordinates
-            local coords =vmachine.getCoordinates() or "Unknown"
+            local coords = machine.getCoordinates() or "Unknown"
             
             -- Get sensor information
             local sensorInfo = machine.getSensorInformation() or "No sensor data"
