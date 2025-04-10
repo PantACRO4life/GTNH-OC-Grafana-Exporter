@@ -228,7 +228,6 @@ local function exportAllMachines()
             
             local x, y, z = machine.getCoordinates()
             local coord = string.format("%s|%s|%s", x, y, z)
-            coord = coord:gsub("|", "\\|")
 
             local fields = {}
             table.insert(fields, string.format('%s="%s"', "max_energy_income", machine.getInputVoltage()))
@@ -238,7 +237,7 @@ local function exportAllMachines()
             local sensorFields = parseOnlySelected(sensorData)
             -- Use name as the machine tag
             local line = string.format(
-                "multiblocks,machine=%s,coord=%s,owner=%s %s%s",
+                "multiblocks,machine=%s,coord=%s,owner=%s %s,%s",
                 name,
                 coord,
                 owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
