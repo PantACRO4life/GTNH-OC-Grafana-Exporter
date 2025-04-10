@@ -189,6 +189,82 @@ local function exportAllMultiblocks()
     end
 end
 
+-- NEW IMPLEMENTATION
+--------------
+
+-- Get the LSC machine based on UUID from config
+local function getLSC()
+    -- Check if the lscUUID exists in the config
+    if not config.lscUUID then
+        print("Error: lscUUID is not defined in the config file!")
+        return nil
+    end
+
+    local targetUUID = config.lscUUID
+
+    -- Iterate through components and look for the matching UUID
+    for addr, comp in pairs(component.list()) do
+        if addr == targetUUID then
+            -- Found the LSC machine with the matching UUID
+            return component.proxy(addr)
+        end
+    end
+
+    -- If no machine with the UUID is found
+    print("Error: No GT machine with UUID " .. targetUUID .. " found.")
+    return nil
+end
+
+-- Export data for other GT machines
+local function exportAllMachines()
+    -- Get the LSC machine
+    local lsc = getLSC()
+
+    -- Check if LSC is found
+    if not lsc then
+        print("Error: LSC machine not found. Skipping machine export.")
+        return
+    end
+
+    -- Loop through all components
+    for addr, comp in pairs(component.list()) do
+        -- Skip the LSC machine
+        if addr ~= config.lscUUID then
+            -- Get the machine's name
+            local name = comp.GetName and comp.GetName() or "Unknown"
+            
+            -- Get the owner's name
+            local owner = comp.GetOwnerName and comp.GetOwnerName() or "Unknown"
+            
+            -- Get the machine's coordinates
+            local coords = comp.GetCoordinates and comp.GetCoordinates() or "Unknown"
+            
+            -- Get sensor information
+            local sensorInfo = comp.getSensorInformation and comp.getSensorInformation() or "No sensor data"
+
+            -- Export data for this machine
+            print("Exporting data for machine: " .. name)
+            print("  Owner: " .. owner)
+            print("  Coordinates: " .. coords)
+            print("  Sensor Info: " .. sensorInfo)
+
+            -- Here you would run the commands to export data for the current machine
+            -- This can be your custom export logic similar to your `exportEnergy()` function for LSC
+            -- Example:
+            -- internet.request(config.dbURL .. config.energyDB, postString)()
+        end
+    end
+end
+
+-- Trigger the export for all machines
+exportAllMachines()
+
+
+
+-------
+-------
+-------
+
 
 
 local function exportCpus(interface)
