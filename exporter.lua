@@ -228,7 +228,7 @@ local function exportAllMachines()
             
             local x, y, z = machine.getCoordinates()
             local coord = string.format("%s | %s | %s", x, y, z)
-            coord = coord:gsub(" ", "\ "):gsub("|", "\|")
+            coord = coord:gsub(" ", " "):gsub("|", "|")
 
             local fields = {}
             table.insert(fields, string.format('%s="%s"', "max_energy_income", machine.getInputVoltage()))
