@@ -175,18 +175,30 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             
             -- Get the machine's coordinates
-            local coords = machine.getCoordinates() or "Unknown"
+            --local coords = machine.getCoordinates() or "Unknown"
+            --local coordinates = machine.getCoordinates()
+
+            --for i, v in ipairs(coordinates) do
+            --    coordinates[i] = tostring(v)  -- Convert each value to a string
+            --end
+
+            --local result = table.concat(coordinates, ", ")
             
             -- Get sensor information
             --local sensorInfo = machine.getSensorInformation() or "No sensor data"
   
-        local postString = postString .. config.multiblockMeasurement .. 
-            " machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. "\n" --.. ",sensor=" .. sensorInfo .. "\n"
+        postString = postString .. config.multiblockMeasurement .. 
+            " machine=" .. name .. ",owner=" .. owner .. "\n" -- ",coord=\"" .. coords .. "\"\n" --.. ",sensor=" .. sensorInfo .. "\n"
         end
         
-        internet.request(config.dbURL .. config.multiblockDB, postString)()
     end
     
+    if #postString > 0 then
+        print("Sending to InfluxDB: " .. postString)
+        internet.request(config.dbURL .. config.multiblockDB, postString)()
+    end
+    print(postString)
+    print("No data to send")
 end
 
 local function exportCpus(interface)
