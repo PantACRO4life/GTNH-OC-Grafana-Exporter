@@ -178,10 +178,10 @@ local function exportAllMachines()
             local coords = machine.getCoordinates() or "Unknown"
             
             -- Get sensor information
-            --local sensorInfo = machine.getSensorInformation() or "No sensor data"
+            local sensorInfo = machine.getSensorInformation() or "No sensor data"
   
-        local postString = config.multiblockMeasurement .. 
-            " machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords --.. ",sensor=" .. sensorInfo
+        local postString = postString .. config.multiblockMeasurement .. 
+            " machine=" .. name .. ",owner=" .. owner .. ",coord=" .. coords .. ",sensor=" .. sensorInfo .. "\n"
         end
         
         internet.request(config.dbURL .. config.multiblockDB, postString)()
