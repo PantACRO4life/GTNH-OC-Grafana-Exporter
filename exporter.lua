@@ -161,43 +161,26 @@ end
 
 -- Export data for other GT machines
 local function exportAllMachines()
-    -- Get the LSC machine
-    local lsc = getLSC()
-
-    -- Check if LSC is found
-    if not lsc then
-        print("Error: LSC machine not found. Skipping machine export.")
-        return
-    end
     local postString = ""
     -- Loop through all components
     for addr, comp in pairs(component.list()) do
         -- Skip the LSC machine
         if addr ~= config.lscUUID then
+            local machine = component.proxy(addr)
             -- Get the machine's name
-            local name = comp.GetName and comp.GetName() or "Unknown"
+            local name = machine.getName() or "Unknown"
             
             -- Get the owner's name
-            local owner = comp.GetOwnerName and comp.GetOwnerName() or "Unknown"
+            local owner = machine.getOwnerName() or "Unknown"
             
             -- Get the machine's coordinates
-            local coords = comp.GetCoordinates and comp.GetCoordinates() or "Unknown"
+            local coords =vmachine.getCoordinates() or "Unknown"
             
             -- Get sensor information
-            local sensorInfo = comp.getSensorInformation and comp.getSensorInformation() or "No sensor data"
-
-            -- Export data for this machine
-            --print("Exporting data for machine: " .. name)
-            --print("  Owner: " .. owner)
-            --print("  Coordinates: " .. coords)
-            --print("  Sensor Info: " .. sensorInfo)
-            
+            local sensorInfo = machine.getSensorInformation() or "No sensor data"
+  
             postString = postString .. config.multiblockMeasurement .. ",machine=" .. sanitize(name) .. ",owner=" .. sanitize(owner) .. ",coord=" .. sanitize(coords) .. ",sensor=" .. sanitize(sensorInfo) .. "\n"
             
-            -- Here you would run the commands to export data for the current machine
-            -- This can be your custom export logic similar to your `exportEnergy()` function for LSC
-            -- Example:
-            -- internet.request(config.dbURL .. config.energyDB, postString)()
         end
     end
     
