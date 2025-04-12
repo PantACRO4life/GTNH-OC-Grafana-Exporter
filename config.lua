@@ -4,6 +4,7 @@ local config = {
     dbHostname = "http://10.3.47.231:8086",
     --- Probably don't edit this
     dbEndpoint = "/write?db=",
+    
     --- Toggles Flags
     --- Whether to export item data
     enableItems = false,
