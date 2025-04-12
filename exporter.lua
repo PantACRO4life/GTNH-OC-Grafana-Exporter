@@ -29,7 +29,6 @@ local function safeComponent(name)
     if component.isAvailable(name) then
         return component[name]
     else
-        print("DEBUG: Component '" .. name .. "' not available.")
         return nil
     end
 end
@@ -104,9 +103,7 @@ local function getLSC()
         print("Error: lscUUID is not defined in the config file!")
         return nil
     end
-
     local targetUUID = config.lscUUID
-
     -- Iterate through components and look for the matching UUID
     for addr, comp in pairs(component.list()) do
         if addr == targetUUID then
@@ -114,7 +111,6 @@ local function getLSC()
             return component.proxy(addr)
         end
     end
-
     -- If no machine with the UUID is found
     print("Error: No GT machine with UUID " .. targetUUID .. " found.")
     return nil
@@ -122,18 +118,15 @@ end
 local function exportEnergy()
     -- Get the LSC machine
     local lsc = getLSC()
-
     -- Check if lsc is nil
     if not lsc then
         print("Error: LSC machine not found. Cannot proceed with energy export.")
         return
     end
-
     -- Proceed with the energy export logic if LSC is found
     local currentEU = lsc.getEUStored()
     local maxEU = lsc.getEUMaxStored()
-    local sensorData = lsc.getSensorInformation()
-    
+    local sensorData = lsc.getSensorInformation() 
     -- Continue with the export logic (same as before)
     local input5s = sensorData[10]:sub(12, #sensorData[10] - 17):gsub(",", "")
     local output5s = sensorData[11]:sub(13, #sensorData[11] - 17):gsub(",", "")
@@ -143,23 +136,19 @@ local function exportEnergy()
     local output1h = sensorData[15]:sub(13, #sensorData[15] - 14):gsub(",", "")
     local wirelessExp, wirelessBase = 0
     local wirelessEU = ""
-    
     if config.enableWireless then
         wirelessEU = sensorData[23]:sub(23, #sensorData[23] - 3):gsub(",", "")
         wirelessSci = sensorData[24]:sub(23, #sensorData[24] - 3)
         wirelessBase, wirelessExp = scientific(wirelessSci)
     end
-    
     local postString = config.energyMeasurement ..
         " current=" .. currentEU .. "i,max=" .. maxEU .. "i,input5s=" .. input5s .. "i," ..
         "output5s=" .. output5s .. "i,input5m=" .. input5m .. "i,output5m=" .. output5m .. "i," ..
         "input1h=" .. input1h .. "i,output1h=" .. output1h .. "i"
-    
     if config.enableWireless then
         postString = postString .. ",wirelesseu=\"" .. wirelessEU .. "\",wirelessbase=" ..
             wirelessBase .. ",wirelessexp=" .. wirelessExp .. "i"
     end
-
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
 local function exportCpus(interface)
@@ -294,7 +283,6 @@ local displayNames = {
 }
 local function parseSensorFields(sensorData, name, coord, owner)
     local fields = {}
-
     local function escape(str)
         return (str or "Unknown"):gsub('"', '\\"'):gsub("\\", "\\\\")
     end
@@ -325,7 +313,6 @@ local function parseSensorFields(sensorData, name, coord, owner)
 
     if gtPlusPlus == 5 then
         local cleaned = sensorData[4]:gsub("§.", "")
-        print("DEBUG: Cleaned line: " .. cleaned)
         energyIncome = cleaned:match("Max Energy Income: ([%d,]+) EU/t")
         amperage = cleaned:match("%(%*?%s*(%d+)[A]%)")
         
@@ -339,16 +326,11 @@ local function parseSensorFields(sensorData, name, coord, owner)
             if line:find("Max Energy Income") then
                 local nextLine = sensorData[i + 1] and sensorData[i + 1]:gsub("§.", "") or ""
                 local combined = line .. " " .. nextLine
-                print("DEBUG: Combined line:", combined)
 
                 energyIncome = combined:match("([%d,]+) EU/t")
                 amperage = combined:match("%(%*?(%d+)A%)") or combined:match("(%d+)A")
                 tier = combined:match("Tier: (%a+)")
-                print("DEBUG: Raw energyIncome string:\t", energyIncome)
-                print("DEBUG: Raw amperage string:\t", amperage)
-                print("DEBUG: Tier:\t", tier)
             end
-
             if line:find("Maximum Parallel") then
                 local parallel = line:match("Maximum Parallel:%s*(%d+)")
                 if parallel then
@@ -360,17 +342,11 @@ local function parseSensorFields(sensorData, name, coord, owner)
     -- Final cleanup and insertion
     local energy = energyIncome and tonumber((energyIncome:gsub(",", ""))) or 0
     local ampNum = amperage and tonumber(amperage) or 0
-
-    print("DEBUG: Parsed energy:", energy)
-    print("DEBUG: Parsed ampNum:", ampNum)
-
     table.insert(fields, string.format("energyIncome=%s", energy))
     table.insert(fields, string.format("amperage=%s", ampNum))
     table.insert(fields, string.format('tier="%s"', escape(tier or "N/A")))
     local output = table.concat(fields, ",")
-    print("DEBUG: Final payload to send ->", output)
-    return output
-    
+    return output 
 end
 local function exportAllMachines()
     local postString = ""
