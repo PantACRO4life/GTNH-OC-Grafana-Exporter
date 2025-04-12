@@ -203,6 +203,36 @@ local function parseSensorFields(sensorData, name, coord, owner)
     return table.concat(fields, ",")
 end
 
+local displayNames = {
+  ["industrialcentrifuge.controller.tier.single"] = "Centrifuge",
+  ["industrialsalloyamelter.controller.tier.single"] = "Alloy Blast Smelter [ABS]",
+  ["chemicalreactor"] = "Large Chemical Reactor [LCR]",
+  ["supercapacitor"] = "Lapotronic Supercapacitor [LSC]",
+  ["blastfurnace"] = "Electric Blast Furnace [EBF]",
+  ["implosioncompressor"] = "Implosion Compressor",
+  ["distillationtower"] = "Distillation Tower [DT]",
+  ["industrialmacerator.controller.tier.single"] = "Macerator",
+  ["cracker"] = "Oil Cracker",
+  ["lathe"] = "Lathe",
+  ["vacuumfreezer"] = "Vacuum Freezer",
+  ["cleanroom"] = "Clean Room [CR]",
+  ["industrialmixer.controller.tier.single"] = "Mixer",
+  ["industrialwiremill.controller.tier.single"] = "Wiremill",
+  ["preciseassembler"] = "Assembler",
+  ["adv.blastfurnace"] = "Volcanus",
+  ["industrialcuttingmachine.controller.tier.01"] = "Cutting Machine",
+  ["research_completer"] = "TC Researcher",
+  ["fluidextractor"] = "Fluid Extractor",
+  ["industrialelectrolyzer.controller.tier.single"] = "Electrolyzer",
+  ["engraver"] = "Laser Engraver",
+  ["industrialbender.controller.tier.single"] = "Bending Machine",
+  ["industrialextruder.controller.tier.single"] = "Extruder",
+  ["basiccompressor"] = "Compressor",
+  ["industrialcokeoven.controller.tier.single"] = "Coke Oven",
+  ["pyro"] = "Pyrolyse Oven",
+  ["brewery"] = "Brewery Barrel"
+}
+
 -- Export data for other GT machines
 local function exportAllMachines()
     local postString = ""
@@ -211,8 +241,10 @@ local function exportAllMachines()
         if comp == "gt_machine" then
             local machine = component.proxy(addr)
 
-            local name = machine.getName() or "Unknown"
-            name = name:gsub("multimachine.", "")
+            local rawName = machine.getName() or "Unknown"
+            rawName = rawName:gsub("multimachine.", "")
+            local name = displayNames[rawName] or rawName
+
 
             local owner = machine.getOwnerName() or "Unknown"
             local x, y, z = machine.getCoordinates()
