@@ -41,25 +41,6 @@ local function scientific(s)
     return base, exp
 end
 
-local friendlyNames = {}
-
-local function loadFriendlyNames(path)
-    local file = io.open(path, "r")
-    if not file then
-        print("Failed to open friendly names CSV at: " .. path)
-        return
-    end
-
-    for line in file:lines() do
-        local raw, friendly = line:match("^([^,]+),(.+)$")
-        if raw and friendly and raw ~= "raw" then  -- skip header
-            friendlyNames[raw] = friendly
-        end
-    end
-
-    file:close()
-end
-loadFriendlyNames("/home/friendly_names.csv") -- adjust path as needed
 local function exportItems(interface)
     local itemIter = interface.allItems()
     local postString = ""
@@ -230,9 +211,8 @@ local function exportAllMachines()
         if comp == "gt_machine" then
             local machine = component.proxy(addr)
 
-            local rawName = machine.getName() or "Unknown"
-            rawName = rawName:gsub("multimachine.", "")
-            local name = friendlyNames[rawName] or rawName
+            local name = machine.getName() or "Unknown"
+            name = name:gsub("multimachine.", "")
 
             local owner = machine.getOwnerName() or "Unknown"
             local x, y, z = machine.getCoordinates()
@@ -329,6 +309,7 @@ local function main()
             end
         end
         if config.enableMultiblocks and os.time() > lastMultiblockTime + config.multiblockInterval then
+            exportAllMachines()
             lastMultiblockTime = os.time()
             if config.enableLogging then
                 print("[" .. os.time() .. "] Exported multiblock; free RAM: " .. computer.freeMemory() .. " bytes")
