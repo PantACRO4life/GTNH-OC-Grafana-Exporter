@@ -14,7 +14,7 @@ need to place an Adapter adjacent; you can also use multiple Adapters connected 
 # Download
 After installing OpenOS and rebooting, run this command to download the program:
 
-```wget https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/exporter.lua ; wget https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/config.lua```
+```wget -f https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/exporter.lua ; wget -f https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/config.lua```
 
 (use middle click to paste). You'll then need to edit the config, but we'll come back to that after setting up InfluxDB and Grafana.
 
