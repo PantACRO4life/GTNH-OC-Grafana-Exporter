@@ -59,7 +59,7 @@ local function loadFriendlyNames(path)
 
     file:close()
 end
-
+loadFriendlyNames("/home/friendly_names.csv") -- adjust path as needed
 local function exportItems(interface)
     local itemIter = interface.allItems()
     local postString = ""
@@ -282,7 +282,6 @@ local function main()
     lastEnergyTime = startTime
     lastCpuTime = startTime
     lastMultiblockTime = startTime
-    loadFriendlyNames("/home/friendly_names.csv") -- adjust path as needed
     local interface = nil
     local lsc = nil
     if config.enableCpus or config.enableEssentia or config.enableFluids or config.enableItems then
