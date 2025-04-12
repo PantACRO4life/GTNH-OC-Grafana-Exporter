@@ -3,36 +3,33 @@ local component = require("component")
 local config = require("config")
 local internet = require("internet")
 local event = require("event")
-
 local function keyboardEvent(eventName, keyboardAddress, charNum, codeNum, playerName)
     if charNum == 113 then
         needExitFlag = true
         return false
     end
 end
-
 local function initEvents()
     needExitFlag = false
 end
-
 local function hookEvents()
     event.listen("key_up", keyboardEvent)
 end
-
 hookEvents()
-
 local function sanitize(s)
     s = string.gsub(s, " ", "\\ ")
     s = string.gsub(s, "=", "\\=")
     return string.gsub(s, ",", "\\,")
 end
-
+local function sanitize(str)
+    if type(str) ~= "string" then return "N/A" end
+    return str:gsub('"', '\\"'):gsub("\\", "\\\\")
+end
 local function essentiaName(label)
     for token in string.gmatch(label, "[^%s]+") do
         return token
     end
 end
-
 local function scientific(s)
     local exp = ""
     local i = 1
@@ -40,7 +37,6 @@ local function scientific(s)
     local exp = s:gmatch("^[%d]+")():sub(2)
     return base, exp
 end
-
 local function exportItems(interface)
     local itemIter = interface.allItems()
     local postString = ""
@@ -65,7 +61,6 @@ local function exportItems(interface)
         internet.request(config.dbURL .. config.itemDB, postString)()
     end
 end
-
 local function exportEssentia(interface)
     local essentia = interface.getEssentiaInNetwork()
     local postString = ""
@@ -76,7 +71,6 @@ local function exportEssentia(interface)
     end
     internet.request(config.dbURL .. config.essentiaDB, postString)()
 end
-
 local function exportFluids(interface)
     local fluids = interface.getFluidsInNetwork()
     local postString = ""
@@ -87,8 +81,6 @@ local function exportFluids(interface)
     end
     internet.request(config.dbURL .. config.fluidDB, postString)()
 end
-
-
 -- Get the LSC machine based on UUID from config
 local function getLSC()
     -- Check if the lscUUID exists in the config
@@ -111,8 +103,6 @@ local function getLSC()
     print("Error: No GT machine with UUID " .. targetUUID .. " found.")
     return nil
 end
-
-
 -- Function to export energy from the LSC machine
 local function exportEnergy()
     -- Get the LSC machine
@@ -160,65 +150,86 @@ end
 
 local function parseSensorFields(sensorData, name, coord, owner)
     local fields = {}
+
     local function escape(str)
         return (str or "Unknown"):gsub('"', '\\"'):gsub("\\", "\\\\")
     end
 
-    -- Always include these as fields
+    -- Always include name and owner
     table.insert(fields, string.format('machine="%s"', escape(name)))
     table.insert(fields, string.format('owner="%s"', escape(owner)))
 
-    -- If sensorData is not a table, add fallback field
+    -- Fallback if no data
     if type(sensorData) ~= "table" then
         table.insert(fields, 'info="No_sensor_data"')
         return table.concat(fields, ",")
     end
 
-    -- Problems
+    -- Detect GT++ version
     local gtPlusPlus = string.match(sensorData[5] or "", "EU") and 7 or 5
     if gtPlusPlus == 7 then
         gtPlusPlus = string.match(sensorData[18] or "", "Problems") and 18 or 7
     end
+
+    -- Parse problems
     local problemsString = sensorData[gtPlusPlus] or ""
     local problems = "0"
-    if string.match(problemsString, "Has Problems") then
-        problems = "1"
-    end
-    local ok, result = pcall(function()
-        local code = string.match(problemsString, "c(%d+)")
-        if code then
-            problems = code
-        end
+    if problemsString:find("Has Problems") then problems = "1" end
+    pcall(function()
+        local code = problemsString:match("c(%d+)")
+        if code then problems = code end
     end)
-    table.insert(fields, string.format('problems=%s', tonumber(problems)))
+    table.insert(fields, string.format("problems=%s", tonumber(problems) or 0))
 
-    -- Efficiency
-    local efficiency = 0
-    -- Remove Minecraft formatting codes
-    local cleaned = sensorData[gtPlusPlus]:gsub("§.", "")
-    -- Find the number before the % symbol
-    local match = cleaned:match("(%d+%.?%d*)%s*%%")
-    if match then
-        efficiency = match
-    end
-    table.insert(fields, string.format('efficiency=%s', tonumber((string.gsub(efficiency, "%%", "")))))
+    -- Energy, amperage, tier
+    local energyIncome, amperage, tier = nil, nil, "N/A"
 
-    -- Energy income and Tier
-    local energyIncome = 0
-    local amperage = 0
-    local tier = "N/A"
     if gtPlusPlus == 5 then
         local cleaned = sensorData[4]:gsub("§.", "")
-        energyIncome = cleaned:match("Max Energy Income: ([%d%,]+) EU/t")
-        amperage = cleaned:match("%((%d+A)%)")
+        print("DEBUG: Cleaned line: " .. cleaned)
+        energyIncome = cleaned:match("Max Energy Income: ([%d,]+) EU/t")
+        amperage = cleaned:match("%(%*?%s*(%d+)[A]%)")
+       
         tier = cleaned:match("Tier: (%a+)")
-        table.insert(fields, string.format('energyIncome=%s', tonumber(energyIncome)))
-        table.insert(fields, string.format('amperage=%s', tonumber(amperage)))
-        table.insert(fields, string.format('tier=%s', sanitize(tier)))
-    end
-    
+    elseif gtPlusPlus == 7 then
+        for i = 1, #sensorData do
+            local line = sensorData[i]:gsub("§.", "")
+            if line:find("Max Energy Income") then
+                local nextLine = sensorData[i + 1] and sensorData[i + 1]:gsub("§.", "") or ""
+                local combined = line .. " " .. nextLine
+                print("DEBUG: Combined line:", combined)
 
-    return table.concat(fields, ",")
+                energyIncome = combined:match("([%d,]+) EU/t")
+                amperage = combined:match("%(%*?(%d+)A%)") or combined:match("(%d+)A")
+                tier = combined:match("Tier: (%a+)")
+                print("DEBUG: Raw energyIncome string:\t", energyIncome)
+                print("DEBUG: Raw amperage string:\t", amperage)
+                print("DEBUG: Tier:\t", tier)
+            end
+
+            if line:find("Maximum Parallel") then
+                local parallel = line:match("Maximum Parallel:%s*(%d+)")
+                if parallel then
+                    table.insert(fields, string.format('max_parallel=%s', tonumber(parallel)))
+                end
+            end
+        end
+    end
+
+    -- Final cleanup and insertion
+    local energy = energyIncome and tonumber((energyIncome:gsub(",", ""))) or 0
+    local ampNum = amperage and tonumber(amperage) or 0
+
+    print("DEBUG: Parsed energy:", energy)
+    print("DEBUG: Parsed ampNum:", ampNum)
+
+    table.insert(fields, string.format("energyIncome=%s", energy))
+    table.insert(fields, string.format("amperage=%s", ampNum))
+    table.insert(fields, string.format('tier="%s"', escape(tier or "N/A")))
+    local output = table.concat(fields, ",")
+    print("DEBUG: Final payload to send ->", output)
+    return output
+    
 end
 
 local displayNames = {
@@ -366,7 +377,7 @@ local function main()
             end
         end
         
-        os.sleep(1)
+        os.sleep(0.250)
     end
 end
 
