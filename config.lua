@@ -7,13 +7,13 @@ local config = {
 
     -- Items:
     --- Whether to export item data
-    enableItems = true,
+    enableItems = false,
     --- The DB to export item data into
     itemDB = "gtnh",
     --- Name of the item measurement to export to
     itemMeasurement = "items",
     --- Interval (in seconds) between item exports
-    itemInterval = 65,
+    itemInterval = 0.250,
     --- Minimum quantity for an item to be exported
     itemThreshold = 500,
     -- Number of items to export at once; try lowering if you're having memory issues (200 maybe for 256 KB?)
@@ -21,25 +21,25 @@ local config = {
 
     -- Fluids:
     --- Whether to export fluid data
-    enableFluids = true,
+    enableFluids = false,
     --- The DB to export fluid data into
     fluidDB = "gtnh",
     --- Name of the fluid measurement to export to
     fluidMeasurement = "fluids",
     --- Interval (in seconds) between fluid exports
-    fluidInterval = 55,
+    fluidInterval = 0.250,
     --- Minimum quantity (in liters) for a fluid to be exported
     fluidThreshold = 0,
 
     -- Essentia:
     --- Whether to export essentia data
-    enableEssentia = true,
+    enableEssentia = false,
     --- The DB to export essentia data into
     essentiaDB = "gtnh",
     --- Name of the essentia measurement to export to
     essentiaMeasurement = "essentia",
     --- Interval (in seconds) between essentia exports
-    essentiaInterval = 60,
+    essentiaInterval = 0.250,
     --- Minimum quantity for an essentia to be exported
     essentiaThreshold = 0,
 
@@ -47,13 +47,13 @@ local config = {
     -- The UUID of the LSC machine
     lscUUID = "bb0ea24e-c009-46fe-9de5-b8c444bb071c",  
     --- Whether to export energy data
-    enableEnergy = true,
+    enableEnergy = false,
     --- The DB to export energy data into
     energyDB = "gtnh",
     --- Name of the energy measurement to export to
     energyMeasurement = "energy",
     --- Interval (in seconds) between energy exports
-    energyInterval = 10,
+    energyInterval = 0.250,
     --- Whether to export wireless data (beta)
     enableWireless = false,
 
@@ -65,7 +65,7 @@ local config = {
     --- Name of the crafting CPU measurement to export to
     cpuMeasurement = "cpus",
     --- Interval (in seconds) between crafting CPU exports
-    cpuInterval = 20,
+    cpuInterval = 0.250,
 
     -- Misc:
     --- Whether to print log messages (containing timestamps and free RAM)
@@ -73,13 +73,13 @@ local config = {
 
     -- Multiblock Machines:
     --- Whether to export multiblock machine data
-    enableMultiblocks = true,
+    enableMultiblocks = false,
     --- The DB to export multiblock data into
     multiblockDB = "gtnh",
     --- Name of the multiblock measurement to export to
     multiblockMeasurement = "multiblocks",
     --- Interval (in seconds) between multiblock exports
-    multiblockInterval = 20,
+    multiblockInterval = 0.250,
 
 }
 
