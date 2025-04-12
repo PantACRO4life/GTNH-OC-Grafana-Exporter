@@ -158,107 +158,78 @@ local function exportEnergy()
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
 
-local function parseSensorData(sensorData)
+local function parseSensorFields(sensorData, name, coord, owner)
     local fields = {}
-
-    if type(sensorData) == "table" then
-        for _, line in ipairs(sensorData) do
-            local key, value = line:match("^(.-):%s*(.*)$")
-            if key and value then
-                key = key:gsub("%s+", "_")
-                value = value:gsub('"', '\\"')
-                table.insert(fields, string.format('%s="%s"', key, value))
-            end
-        end
-    else
-        table.insert(fields, 'info="No_sensor_data"')
+    local function escape(str)
+        return (str or "Unknown"):gsub('"', '\\"'):gsub("\\", "\\\\")
     end
 
-    return table.concat(fields, ",")
-end
+    -- Always include these as fields
+    table.insert(fields, string.format('machine="%s"', escape(name)))
+    table.insert(fields, string.format('coord="%s"', escape(coord)))
+    table.insert(fields, string.format('owner="%s"', escape(owner)))
 
-local function parseOnlySelected(sensorData)
-    local fields = {}
-    -- Problems start
-    -- Validate input
-    if type(sensorData) ~= "table" then return nil end
+    -- If sensorData is not a table, add fallback field
+    if type(sensorData) ~= "table" then
+        table.insert(fields, 'info="No_sensor_data"')
+        return table.concat(fields, ",")
+    end
 
-    -- Determine the index of the Problems line
+    -- Problems
     local gtPlusPlus = string.match(sensorData[5] or "", "EU") and 7 or 5
     if gtPlusPlus == 7 then
         gtPlusPlus = string.match(sensorData[18] or "", "Problems") and 18 or 7
     end
-
     local problemsString = sensorData[gtPlusPlus] or ""
     local problems = "0"
-
-    -- Default: if "Has Problems" is present, set to 1
     if string.match(problemsString, "Has Problems") then
         problems = "1"
     end
-
-    -- Try to extract "cX" (e.g. c5 → 5)
     local ok, result = pcall(function()
         local code = string.match(problemsString, "c(%d+)")
         if code then
             problems = code
         end
     end)
-    table.insert(fields, string.format('%s="%s"', "problems", tonumber(problems)))
-    -- Problems End
-    
-    -- Efficiency start
-    local noParagraphMarkString = string.gsub(sensorData[5], "Â§r", "")
+    table.insert(fields, string.format('problems="%s"', tonumber(problems)))
+
+    -- Efficiency
     local efficiency = "0.0"
-    pcall(
-        function()
-            efficiency = string.sub(noParagraphMarkString, string.find(noParagraphMarkString, "%d+%.*%d*%s%%"))
-        end
-    )
-    table.insert(fields, string.format('%s="%s"', "efficiency", tonumber((string.gsub(efficiency, "%s%%", "")))))
-    -- Efficiency end
-    -- add other fields
-    
+    pcall(function()
+        local noParagraphMarkString = string.gsub(sensorData[5], "Â§r", "")
+        efficiency = string.sub(noParagraphMarkString, string.find(noParagraphMarkString, "%d+%.*%d*%s%%"))
+    end)
+    table.insert(fields, string.format('efficiency="%s"', tonumber((string.gsub(efficiency, "%%", "")))))
+
     return table.concat(fields, ",")
 end
 
 -- Export data for other GT machines
 local function exportAllMachines()
     local postString = ""
-    
+
     for addr, comp in pairs(component.list()) do
         if comp == "gt_machine" then
             local machine = component.proxy(addr)
 
             local name = machine.getName() or "Unknown"
             name = name:gsub("multimachine.", "")
-            
+
             local owner = machine.getOwnerName() or "Unknown"
-            
             local x, y, z = machine.getCoordinates()
             local coord = string.format("%s|%s|%s", x, y, z)
-            
-            local sensorData = machine.getSensorInformation()
-            --local sensorFields = parseSensorData(sensorData)
-            local sensorFields = parseOnlySelected(sensorData)
-            -- Use name as the machine tag
-            local line = string.format(
-                "multiblocks,machine=%s,coord=%s,owner=%s %s",
-                name,
-                coord,
-                owner:gsub(" ", "\\ "), -- tag values can't have spaces unescaped
-                sensorFields
-            )
 
+            local sensorData = machine.getSensorInformation()
+            local sensorFields = parseSensorFields(sensorData, name, coord, owner)
+
+            local line = string.format("multiblocks %s", sensorFields)
             postString = postString .. line .. "\n"
         end
     end
 
-    --print(postString)
-
-    -- Send all at once
     internet.request(config.dbURL .. config.multiblockDB, postString)()
 end
+
 
 
 local function exportCpus(interface)
