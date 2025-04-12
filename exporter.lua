@@ -209,6 +209,7 @@ local displayNames = {
     ["MegaUltimateBuckConverter"] = "Mega Ultimate Buck Converter (MUBC)",
     ["MegaVacuumFreezer"] = "Mega Vacuum Freezer (MVF)",
     ["moleculartransformer.controller.tier.single"] = "Molecular Transformer (MT)",
+    ["multimachine.adv.blastfurnace"] = "Volcanus (ABF)",
     ["multimachine.adv.chisel"] = "Industrial 3D Copying Machine (I3DCM)",
     ["multimachine.assemblyline"] = "Assembly Line (AL)",
     ["multimachine.autoclave"] = "Industrial Autoclave (IA)",
@@ -276,7 +277,9 @@ local displayNames = {
     ["multimachine.wormhole"] = "Miniature Wormhole Generator (MWG)",
     ["multimachine_DroneCentre"] = "Drone Centre (DC)",
     ["nuclearsaltprocessingplant.controller.tier.single"] = "Nuclear Salt Processing Plant (NSPP)",
+    ["preciseassembler"] = "Precise Auto-Assembler MT-3662 (PrAss)",
     ["quantumforcetransformer.controller.tier.single"] = "Quantum Force Transformer (QFT)",
+    ["research_completer"] = "Research Completer (RC)",
     ["solartower.controller.tier.single"] = "Solar Tower (ST)",
     ["treefarm.controller.tier.single"] = "Tree Growth Simulator (TGS)",
     ["waterpump.controller.tier.single"] = "Water Pump (WP)"
@@ -355,7 +358,6 @@ local function exportAllMachines()
             local machine = component.proxy(addr)
 
             local rawName = machine.getName() or "Unknown"
-            rawName = rawName:gsub("multimachine.", "")
             local name = displayNames[rawName] or rawName
 
             local owner = machine.getOwnerName() or "Unknown"
