@@ -16,14 +16,14 @@ local function hookEvents()
     event.listen("key_up", keyboardEvent)
 end
 hookEvents()
-local function sanitize(s)
-    s = string.gsub(s, " ", "\\ ")
-    s = string.gsub(s, "=", "\\=")
-    return string.gsub(s, ",", "\\,")
-end
 local function sanitize(str)
     if type(str) ~= "string" then return "N/A" end
-    return str:gsub('"', '\\"'):gsub("\\", "\\\\")
+    str = str:gsub("\\", "\\\\")
+    str = str:gsub('"', '\\"')
+    str = str:gsub(" ", "\\ ")
+    str = str:gsub("=", "\\=")
+    str = str:gsub(",", "\\,")
+    return str
 end
 local function safeComponent(name)
     if component.isAvailable(name) then
@@ -151,7 +151,9 @@ local function exportEnergy()
     end
     internet.request(config.dbURL .. config.energyDB, postString)()
 end
-local function exportCpus(interface)
+local function exportCpus()
+    local interface = safeComponent("me_interface")
+    if not interface then return end
     local cpus = interface.getCpus()
     postString = ""
     for _, cpu in pairs(cpus) do
@@ -159,7 +161,7 @@ local function exportCpus(interface)
             postString = postString .. config.cpuMeasurement .. ",cpuname=" .. sanitize(cpu.name) .. " storage=" .. cpu.storage .. "i,coprocessors=" .. cpu.coprocessors .. "i,busy=" .. tostring(cpu.busy)
             local output = cpu.cpu.finalOutput()
             if output ~= nil then
-                postString = postString .. ",craftingItem=\"" .. output.label .. "\",craftingCount=" .. output.size .. "i"
+                postString = postString .. ",craftingItem=\"" .. sanitize(output.label) .. "\",craftingCount=" .. output.size .. "i"
             else
                 postString = postString .. ",craftingItem=" .. "\"N/A\"" .. ",craftingCount=" .. 0 .. "i"
             end
