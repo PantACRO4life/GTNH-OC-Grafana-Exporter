@@ -32,6 +32,14 @@ local function safeComponent(name)
         return nil
     end
 end
+local function safeRequest(url, body)
+    local success, err = pcall(function()
+        internet.request(url, body)()
+    end)
+    if not success then
+        print("ERROR: Failed to send data to " .. url .. " -> " .. tostring(err))
+    end
+end
 local function essentiaName(label)
     for token in string.gmatch(label, "[^%s]+") do
         return token
@@ -60,7 +68,7 @@ local function exportItems()
                 postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(currItem["label"]) .. " amount=" .. currItem["size"] .. "i\n"
 
                 if currLength >= config.itemMaxExport then
-                    internet.request(config.dbURL .. config.itemDB, postString)()
+                    safeRequest(config.dbURL .. config.itemDB, postString)
                     currLength = 0
                     postString = ""
                 end
@@ -68,7 +76,7 @@ local function exportItems()
         end
     end
     if currLength > 0 then
-        internet.request(config.dbURL .. config.itemDB, postString)()
+        safeRequest(config.dbURL .. config.itemDB, postString)
     end
 end
 local function exportEssentia()
@@ -81,7 +89,7 @@ local function exportEssentia()
             postString = postString .. config.essentiaMeasurement .. ",aspect=" .. sanitize(essentiaName(e["label"])) .. " amount=" .. e["amount"] .. "i\n"
         end
     end
-    internet.request(config.dbURL .. config.essentiaDB, postString)()
+    safeRequest(config.dbURL .. config.essentiaDB, postString)
 end
 local function exportFluids()
     local interface = safeComponent("me_interface")
@@ -95,7 +103,7 @@ local function exportFluids()
             postString = postString .. config.fluidMeasurement .. ",fluid=" .. sanitize(f["label"]) .. " amount=" .. f["amount"] .. "i\n"
         end
     end
-    internet.request(config.dbURL .. config.fluidDB, postString)()
+    safeRequest(config.dbURL .. config.fluidDB, postString)
 end
 local function getLSC()
     -- Check if the lscUUID exists in the config
@@ -149,7 +157,7 @@ local function exportEnergy()
         postString = postString .. ",wirelesseu=\"" .. wirelessEU .. "\",wirelessbase=" ..
             wirelessBase .. ",wirelessexp=" .. wirelessExp .. "i"
     end
-    internet.request(config.dbURL .. config.energyDB, postString)()
+    safeRequest(config.dbURL .. config.energyDB, postString)
 end
 local function exportCpus()
     local interface = safeComponent("me_interface")
@@ -161,14 +169,14 @@ local function exportCpus()
             postString = postString .. config.cpuMeasurement .. ",cpuname=" .. sanitize(cpu.name) .. " storage=" .. cpu.storage .. "i,coprocessors=" .. cpu.coprocessors .. "i,busy=" .. tostring(cpu.busy)
             local output = cpu.cpu.finalOutput()
             if output ~= nil then
-                postString = postString .. ",craftingItem=\"" .. sanitize(output.label) .. "\",craftingCount=" .. output.size .. "i"
+                postString = postString .. ",craftingItem=\"" .. output.label .. "\",craftingCount=" .. output.size .. "i"
             else
                 postString = postString .. ",craftingItem=" .. "\"N/A\"" .. ",craftingCount=" .. 0 .. "i"
             end
             postString = postString .. "\n"
         end
     end
-    internet.request(config.dbURL .. config.cpuDB, postString)()
+    safeRequest(config.dbURL .. config.cpuDB, postString)
 end
 local displayNames = {
     ["algaefarm.controller.tier.single"] = "Algae Farm (AF)",
@@ -378,7 +386,7 @@ local function exportAllMachines()
             postString = postString .. line .. "\n"
         end
     end
-    internet.request(config.dbURL .. config.multiblockDB, postString)()
+    safeRequest(config.dbURL .. config.multiblockDB, postString)
 end
 local function main()
     initEvents()
