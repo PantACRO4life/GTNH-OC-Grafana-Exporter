@@ -166,7 +166,6 @@ local function parseSensorFields(sensorData, name, coord, owner)
 
     -- Always include these as fields
     table.insert(fields, string.format('machine="%s"', escape(name)))
-    table.insert(fields, string.format('coord="%s"', escape(coord)))
     table.insert(fields, string.format('owner="%s"', escape(owner)))
 
     -- If sensorData is not a table, add fallback field
@@ -218,19 +217,22 @@ local function exportAllMachines()
             local owner = machine.getOwnerName() or "Unknown"
             local x, y, z = machine.getCoordinates()
             local coord = string.format("%s|%s|%s", x, y, z)
+            coord = coord:gsub(" ", "\\ "):gsub(",", "\\,"):gsub("=", "\\=")
 
             local sensorData = machine.getSensorInformation()
             local sensorFields = parseSensorFields(sensorData, name, coord, owner)
 
-            local line = string.format("multiblocks %s", sensorFields)
+            local line = string.format(
+                "multiblocks,coord=%s %s",
+                coord,
+                sensorFields
+            )
             postString = postString .. line .. "\n"
         end
     end
 
     internet.request(config.dbURL .. config.multiblockDB, postString)()
 end
-
-
 
 local function exportCpus(interface)
     local cpus = interface.getCpus()
