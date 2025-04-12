@@ -193,19 +193,30 @@ local function parseSensorFields(sensorData, name, coord, owner)
     table.insert(fields, string.format('problems=%s', tonumber(problems)))
 
     -- Efficiency
-    local efficiency = "0.0"
-    pcall(function()
-        -- Remove Minecraft formatting codes
-        local cleaned = sensorData[gtPlusPlus]:gsub("§.", "")
-        -- Find the number before the % symbol
-        local match = clean:match("(%d+%.?%d*)%s*%%")
-        if match then
-            efficiency = tonumber(match)
-        end
-    end)
+    local efficiency = 0
+    -- Remove Minecraft formatting codes
+    local cleaned = sensorData[gtPlusPlus]:gsub("§.", "")
+    -- Find the number before the % symbol
+    local match = cleaned:match("(%d+%.?%d*)%s*%%")
+    if match then
+        efficiency = match
+    end
     table.insert(fields, string.format('efficiency=%s', tonumber((string.gsub(efficiency, "%%", "")))))
 
     -- Energy income and Tier
+    local energyIncome = 0
+    local amperage = 0
+    local tier = "N/A"
+    if gtPlusPlus == 5 then
+        local cleaned = sensorData[4]:gsub("§.", "")
+        energyIncome = cleaned:match("Max Energy Income: ([%d%,]+) EU/t")
+        amperage = cleaned:match("%((%d+A)%)")
+        tier = cleaned:match("Tier: (%a+)")
+        table.insert(fields, string.format('energyIncome=%s', tonumber(energyIncome)))
+        table.insert(fields, string.format('amperage=%s', tonumber(amperage)))
+        table.insert(fields, string.format('tier=%s', sanitize(tier)))
+    end
+    
 
     return table.concat(fields, ",")
 end
