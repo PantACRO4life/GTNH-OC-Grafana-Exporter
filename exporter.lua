@@ -198,9 +198,9 @@ local function parseSensorFields(sensorData, name, coord, owner)
         -- Remove Minecraft formatting codes
         local cleaned = sensorData[gtPlusPlus]:gsub("§.", "")
         -- Find the number before the % symbol
-        local match = string.match(cleaned, "Efficiency:%s*(%d+%.?%d*)%%")
+        local match = clean:match("(%d+%.?%d*)%s*%%")
         if match then
-            efficiency = match
+            efficiency = tonumber(match)
         end
     end)
     table.insert(fields, string.format('efficiency=%s', tonumber((string.gsub(efficiency, "%%", "")))))
