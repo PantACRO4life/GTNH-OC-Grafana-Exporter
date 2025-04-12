@@ -190,7 +190,7 @@ local function parseSensorFields(sensorData, name, coord, owner)
             problems = code
         end
     end)
-    table.insert(fields, string.format('problems="%s"', tonumber(problems)))
+    table.insert(fields, string.format('problems=%s', tonumber(problems)))
 
     -- Efficiency
     local efficiency = "0.0"
@@ -198,7 +198,7 @@ local function parseSensorFields(sensorData, name, coord, owner)
         local noParagraphMarkString = string.gsub(sensorData[5], "Â§r", "")
         efficiency = string.sub(noParagraphMarkString, string.find(noParagraphMarkString, "%d+%.*%d*%s%%"))
     end)
-    table.insert(fields, string.format('efficiency="%s"', tonumber((string.gsub(efficiency, "%%", "")))))
+    table.insert(fields, string.format('efficiency=%s', tonumber((string.gsub(efficiency, "%%", "")))))
 
     return table.concat(fields, ",")
 end
