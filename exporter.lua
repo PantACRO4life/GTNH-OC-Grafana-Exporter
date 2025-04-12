@@ -195,10 +195,17 @@ local function parseSensorFields(sensorData, name, coord, owner)
     -- Efficiency
     local efficiency = "0.0"
     pcall(function()
-        local noParagraphMarkString = string.gsub(sensorData[5], "Â§r", "")
-        efficiency = string.sub(noParagraphMarkString, string.find(noParagraphMarkString, "%d+%.*%d*%s%%"))
+        -- Remove Minecraft formatting codes
+        local cleaned = sensorData[gtPlusPlus]:gsub("§.", "")
+        -- Find the number before the % symbol
+        local match = string.match(cleaned, "Efficiency:%s*(%d+%.?%d*)%%")
+        if match then
+            efficiency = match
+        end
     end)
     table.insert(fields, string.format('efficiency=%s', tonumber((string.gsub(efficiency, "%%", "")))))
+
+    -- Energy income and Tier
 
     return table.concat(fields, ",")
 end
