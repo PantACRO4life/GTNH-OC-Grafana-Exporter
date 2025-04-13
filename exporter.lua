@@ -3,6 +3,11 @@ local component = require("component")
 local config = require("config")
 local internet = require("internet")
 local event = require("event")
+local modem = component.modem
+local hostname = os.getenv("HOSTNAME") or "unknown"
+local port = 1234
+modem.open(port)
+
 local function keyboardEvent(eventName, keyboardAddress, charNum, codeNum, playerName)
     if charNum == 113 then
         needExitFlag = true
@@ -51,6 +56,25 @@ local function scientific(s)
     local base = s:gmatch("[%d.]+")()
     local exp = s:gmatch("^[%d]+")():sub(2)
     return base, exp
+end
+local function checkForUpdate()
+    modem.broadcast(port, "check_update", hostname)
+
+    -- Wait up to 5 seconds for server reply
+    local deadline = computer.uptime() + 5
+    while computer.uptime() < deadline do
+        local _, _, _, _, _, cmd = event.pull(1, "modem_message")
+        if cmd == "update_required" then
+            print("[UPDATE] Server says update required. Rebooting...")
+            os.sleep(1)
+            computer.shutdown(true)
+        elseif cmd == "up_to_date" then
+            print("[UPDATE] All files are up to date.")
+            return true
+        end
+    end
+
+    print("[WARNING] No update status received, continuing anyway.")
 end
 local function exportItems()
     local interface = safeComponent("me_interface")
@@ -390,6 +414,7 @@ local function exportAllMachines()
 end
 local function main()
     initEvents()
+    checkForUpdate()
     hookEvents()
     startTime = os.time()
     lastFluidTime = startTime
