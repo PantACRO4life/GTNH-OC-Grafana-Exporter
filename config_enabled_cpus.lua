@@ -69,7 +69,7 @@ local config = {
     --- Name of the crafting CPU measurement to export to
     cpuMeasurement = "cpus",
     --- Interval (in seconds) between crafting CPU exports
-    cpuInterval = 0.250,
+    cpuInterval = 5,
 
     -- Multiblock Machines:
     --- The DB to export multiblock data into
