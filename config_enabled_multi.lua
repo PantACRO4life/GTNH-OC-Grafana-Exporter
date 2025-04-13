@@ -77,7 +77,7 @@ local config = {
     --- Name of the multiblock measurement to export to
     multiblockMeasurement = "multiblocks",
     --- Interval (in seconds) between multiblock exports
-    multiblockInterval = 0.250,
+    multiblockInterval = 1,
 
     -- Misc:
     --- Whether to print log messages (containing timestamps and free RAM)
