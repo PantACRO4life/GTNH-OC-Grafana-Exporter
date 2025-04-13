@@ -423,6 +423,8 @@ local function main()
     lastEnergyTime = startTime
     lastCpuTime = startTime
     lastMultiblockTime = startTime
+    lastChecktTime = startTime
+    checkInterval = 5 * 72
     local interface = nil
     local lsc = nil
     if config.enableCpus or config.enableEssentia or config.enableFluids or config.enableItems then
@@ -435,7 +437,10 @@ local function main()
     while true do
         if needExitFlag then break end    
         while not needExitFlag do
-        checkForUpdate()
+            if os.time() > lastChecktTime + checkInterval then
+                checkForUpdate()
+                lastChecktTime = os.time()
+            end
             if config.enableItems and os.time() > lastItemTime + config.itemInterval then
                 exportItems(interface)
                 lastItemTime = os.time()
