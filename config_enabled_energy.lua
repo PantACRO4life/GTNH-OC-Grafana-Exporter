@@ -61,7 +61,7 @@ local config = {
     --- Name of the energy measurement to export to
     energyMeasurement = "energy",
     --- Interval (in seconds) between energy exports
-    energyInterval = 0.250,
+    energyInterval = 1,
 
     -- Crafting CPUs:
     --- The DB to export crafting CPU data into
