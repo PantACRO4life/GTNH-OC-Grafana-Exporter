@@ -16,7 +16,7 @@ After installing OpenOS and rebooting, run this command to download the program:
 
 ```wget -f https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/exporter.lua ; wget -f https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/config.lua```
 
-```wget https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/OC-NAS/nas_client_sync.lua```
+```wget https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/OC-NAS/nas_client_sync.lua ; wget -f https://raw.githubusercontent.com/PantACRO4life/GTNH-OC-Grafana-Exporter/refs/heads/main/OC-NAS/.shrc ; reboot```
 
 (use middle click to paste). You'll then need to edit the config, but we'll come back to that after setting up InfluxDB and Grafana.
 
