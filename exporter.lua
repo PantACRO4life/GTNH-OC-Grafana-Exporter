@@ -435,6 +435,7 @@ local function main()
     while true do
         if needExitFlag then break end    
         while not needExitFlag do
+        checkForUpdate()
             if config.enableItems and os.time() > lastItemTime + config.itemInterval then
                 exportItems(interface)
                 lastItemTime = os.time()
