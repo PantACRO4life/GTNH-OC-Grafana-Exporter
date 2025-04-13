@@ -6,7 +6,7 @@ local modem = component.modem
 local computer = require("computer")
 
 local port = 1234
-local basePath = "/nas/"
+local basePath = "/home/"
 local universalFiles = { "exporter.lua" }
 local configPrefix = "config_enabled_"
 
