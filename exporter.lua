@@ -7,6 +7,7 @@ local modem = component.modem
 local hostname = os.getenv("HOSTNAME") or "unknown"
 local port = 1234
 modem.open(port)
+maxInt = 9223372036854775807
 
 local function keyboardEvent(eventName, keyboardAddress, charNum, codeNum, playerName)
     if charNum == 113 then
