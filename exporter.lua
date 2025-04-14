@@ -365,7 +365,7 @@ local function parseSensorFields(sensorData, name, coord, owner)
                 local combined = line .. " " .. nextLine
 
                 energyIncome = combined:match("([%d,]+) EU/t")
-                amperage = combined:match("%(%*?(%d+)A%)") or combined:match("(%d+)A")
+                amperage = combined:match("%(%*%s*(%d+)%s*A%)") or combined:match("(%d+)%s*A")
                 tier = combined:match("Tier: (%a+)")
             end
             if line:find("Maximum Parallel") then
