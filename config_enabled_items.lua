@@ -27,11 +27,13 @@ local config = {
     --- Name of the item measurement to export to
     itemMeasurement = "items",
     --- Interval (in seconds) between item exports
-    itemInterval = 5,
+    itemInterval = 60,
     --- Minimum quantity for an item to be exported
-    itemThreshold = 1,
+    itemThreshold = 500,
     -- Number of items to export at once; try lowering if you're having memory issues (200 maybe for 256 KB?)
-    itemMaxExport = 5000,
+    itemMaxExport = 2500,
+    --- Interval (in seconds) between using allItems to update the list of items to export (attempting to fix a crash)
+    allItemsInterval = 1800,
 
     -- Fluids:
     --- The DB to export fluid data into
@@ -92,6 +94,6 @@ config.essentiaInterval = config.essentiaInterval * 72
 config.energyInterval = config.energyInterval * 72
 config.cpuInterval = config.cpuInterval * 72
 config.multiblockInterval = config.multiblockInterval * 72
-
+config.allItemsInterval = config.allItemsInterval * 72
 
 return config
