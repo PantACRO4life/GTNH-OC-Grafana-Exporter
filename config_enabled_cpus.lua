@@ -94,6 +94,7 @@ config.essentiaInterval = config.essentiaInterval * 72
 config.energyInterval = config.energyInterval * 72
 config.cpuInterval = config.cpuInterval * 72
 config.multiblockInterval = config.multiblockInterval * 72
+config.allItemsInterval = config.allItemsInterval * 72
 
 
 return config
