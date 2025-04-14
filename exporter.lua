@@ -351,7 +351,7 @@ local function parseSensorFields(sensorData, name, coord, owner)
     if gtPlusPlus == 5 then
         local cleaned = sensorData[4]:gsub("§.", "")
         energyIncome = cleaned:match("Max Energy Income: ([%d,]+) EU/t")
-        amperage = cleaned:match("%(%*?%s*(%d+)[A]%)")
+        amperage = cleaned:match("%(%*%s*(%d+)%s*A%)")
         
         local parallel = 1
         table.insert(fields, string.format('max_parallel=%s', tonumber(parallel)))
