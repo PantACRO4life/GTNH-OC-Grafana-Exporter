@@ -469,7 +469,11 @@ local function main()
     lastMultiblockTime = startTime
     lastChecktTime = startTime
     checkInterval = 5 * 72
-    lastAllItemsTime = startTime - config.allItemsInterval
+    if config.allItemsInterval then
+        lastAllItemsTime = startTime - config.allItemsInterval
+    else
+        lastAllItemsTime = startTime
+    end
     local interface = nil
     local lsc = nil
     if config.enableCpus or config.enableEssentia or config.enableFluids or config.enableItems then
