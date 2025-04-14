@@ -103,6 +103,50 @@ local function exportItems()
         safeRequest(config.dbURL .. config.itemDB, postString)
     end
 end
+local function exportItems2(interface, allItemIds)
+    local postString = ""
+    local currLength = 0
+    for id, _ in pairs(allItemIds) do
+        local currReturn = interface.getItemsInNetworkById({id})
+        for _, item in pairs(currReturn) do
+            if item["size"] >= config.itemThreshold then
+                if item["label"]:find("^drop of") == nil then
+                    currLength = currLength + 1
+                    postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
+                    -- Used to ensure we don't have overly long requests
+                    if currLength >= config.itemMaxExport then
+                        if config.enableDebug then
+                            print(postString)
+                        end
+                        internet.request(config.dbURL .. config.itemDB, postString)()
+                        currLength = 0
+                        postString = ""
+                    end
+                end
+            end
+        end
+    end
+    if currLength > 0 then
+        if config.enableDebug then
+            print(postString)
+        end
+        internet.request(config.dbURL .. config.itemDB, postString)()
+    end
+end
+local function updateItemIds(arr, interface)
+    local itemIter = interface.allItems()
+    local currIdx = 1
+    while true do
+        local currItem = itemIter()
+        if currItem == nil then break end
+        if currItem["size"] >= config.itemThreshold then
+            if currItem["label"]:find("^drop of") == nil then
+                arr[currItem["name"]] = true
+                currIdx = currIdx + 1
+            end
+        end
+    end
+end
 local function exportEssentia()
     local interface = safeComponent("me_interface")
     if not interface then return end
@@ -425,6 +469,7 @@ local function main()
     lastMultiblockTime = startTime
     lastChecktTime = startTime
     checkInterval = 5 * 72
+    lastAllItemsTime = startTime - config.allItemsInterval
     local interface = nil
     local lsc = nil
     if config.enableCpus or config.enableEssentia or config.enableFluids or config.enableItems then
@@ -434,6 +479,7 @@ local function main()
     --    lsc = component.gt_machine
     --    assert(lsc.getName() == "multimachine.supercapacitor", "A GT machine (maybe a cable) other than a LSC controller was found!")
     -- end
+    local allItemIds = {}
     while true do
         if needExitFlag then break end    
         while not needExitFlag do
@@ -441,8 +487,17 @@ local function main()
                 checkForUpdate()
                 lastChecktTime = os.time()
             end
+            if config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
+                allItemIds = {}
+                updateItemIds(allItemIds, interface)
+                lastAllItemsTime = os.time()
+                if config.enableLogging then
+                    print("[" .. os.time() .. "] Set item IDs; free RAM: " .. computer.freeMemory() .. " bytes")
+                end
+            end
             if config.enableItems and os.time() > lastItemTime + config.itemInterval then
-                exportItems(interface)
+                --exportItems(interface)
+                exportItems2(interface, allItemIds)
                 lastItemTime = os.time()
                 if config.enableLogging then
                     print("[" .. os.time() .. "] Exported items; free RAM: " .. computer.freeMemory() .. " bytes")
