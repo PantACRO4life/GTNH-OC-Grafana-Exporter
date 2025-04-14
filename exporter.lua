@@ -30,6 +30,18 @@ local function sanitize(str)
     str = str:gsub(",", "\\,")
     return str
 end
+local function capInt(num)
+    if num < maxInt then
+        return num
+    end
+    return maxInt
+end
+local function capIntStr(numStr)
+    if tonumber(numStr) < maxInt then
+        return numStr
+    end
+    return maxInt
+end
 local function safeComponent(name)
     if component.isAvailable(name) then
         return component[name]
