@@ -41,7 +41,7 @@ local config = {
     --- Name of the fluid measurement to export to
     fluidMeasurement = "fluids",
     --- Interval (in seconds) between fluid exports
-    fluidInterval = 5,
+    fluidInterval = 300, -- 5 minutes
     --- Minimum quantity (in liters) for a fluid to be exported
     fluidThreshold = 0,
 
