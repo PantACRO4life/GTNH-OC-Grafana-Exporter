@@ -27,13 +27,13 @@ local config = {
     --- Name of the item measurement to export to
     itemMeasurement = "items",
     --- Interval (in seconds) between item exports
-    itemInterval = 60,
+    itemInterval = 300, -- 5 minutes
     --- Minimum quantity for an item to be exported
-    itemThreshold = 500,
+    itemThreshold = 100,
     -- Number of items to export at once; try lowering if you're having memory issues (200 maybe for 256 KB?)
-    itemMaxExport = 2500,
+    itemMaxExport = 3000,
     --- Interval (in seconds) between using allItems to update the list of items to export (attempting to fix a crash)
-    allItemsInterval = 1800,
+    allItemsInterval = 1800, -- 30 minutes
 
     -- Fluids:
     --- The DB to export fluid data into
