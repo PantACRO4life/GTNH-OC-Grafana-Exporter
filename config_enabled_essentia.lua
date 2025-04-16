@@ -51,7 +51,7 @@ local config = {
     --- Name of the essentia measurement to export to
     essentiaMeasurement = "essentia",
     --- Interval (in seconds) between essentia exports
-    essentiaInterval = 300, -- minutes
+    essentiaInterval = 300, -- 5 minutes
     --- Minimum quantity for an essentia to be exported
     essentiaThreshold = 0,
 
