@@ -375,73 +375,66 @@ local displayNames = {
     ["treefarm.controller.tier.single"] = "Tree Growth Simulator (TGS)",
     ["waterpump.controller.tier.single"] = "Water Pump (WP)"
 }
+
 local function parseSensorFields(sensorData, name, coord, owner)
     local fields = {}
+
     local function escape(str)
         return (str or "Unknown"):gsub('"', '\\"'):gsub("\\", "\\\\")
     end
+
     -- Always include name and owner
     table.insert(fields, string.format('machine="%s"', escape(name)))
     table.insert(fields, string.format('owner="%s"', escape(owner)))
+
     -- Fallback if no data
     if type(sensorData) ~= "table" then
         table.insert(fields, 'info="No_sensor_data"')
         return table.concat(fields, ",")
     end
-    -- Detect GT++ version
-    local gtPlusPlus = string.match(sensorData[5] or "", "EU") and 7 or 5
-    if gtPlusPlus == 7 then
-        gtPlusPlus = string.match(sensorData[18] or "", "Problems") and 18 or 7
-    end
-    -- Parse problems
-    local problemsString = sensorData[gtPlusPlus] or ""
+
     local problems = "0"
-    if problemsString:find("Has Problems") then problems = "1" end
-    pcall(function()
-        local code = problemsString:match("c(%d+)")
-        if code then problems = code end
-    end)
-    table.insert(fields, string.format("problems=%s", tonumber(problems) or 0))
-    -- Energy, amperage, tier
     local energyIncome, amperage, tier = nil, nil, "N/A"
 
-    if gtPlusPlus == 5 then
-        local cleaned = sensorData[4]:gsub("§.", "")
-        energyIncome = cleaned:match("Max Energy Income: ([%d,]+) EU/t")
-        amperage = cleaned:match("%(%*%s*(%d+)%s*A%)")
-        
-        local parallel = 1
-        table.insert(fields, string.format('max_parallel=%s', tonumber(parallel)))
-        
-        tier = cleaned:match("Tier: (%a+)")
-    elseif gtPlusPlus == 7 then
-        for i = 1, #sensorData do
-            local line = sensorData[i]:gsub("§.", "")
-            if line:find("Max Energy Income") then
-                local nextLine = sensorData[i + 1] and sensorData[i + 1]:gsub("§.", "") or ""
-                local combined = line .. " " .. nextLine
+    for i = 1, #sensorData do
+        local line = sensorData[i]:gsub("§.", "") -- strip formatting codes
 
-                energyIncome = combined:match("([%d,]+) EU/t")
-                amperage = combined:match("%(%*%s*(%d+)%s*A%)") or combined:match("(%d+)%s*A")
-                tier = combined:match("Tier: (%a+)")
-            end
-            if line:find("Maximum Parallel") then
-                local parallel = line:match("Maximum Parallel:%s*(%d+)")
-                if parallel then
-                    table.insert(fields, string.format('max_parallel=%s', tonumber(parallel)))
-                end
+        -- Problems
+        if line:find("Problems") then
+            if line:find("Has Problems") then problems = "1" end
+            local code = line:match("c(%d+)")
+            if code then problems = code end
+        end
+
+        -- Energy Income, Amperage, Tier
+        if line:find("Max Energy Income") then
+            local nextLine = sensorData[i + 1] and sensorData[i + 1]:gsub("§.", "") or ""
+            local combined = line .. " " .. nextLine
+            energyIncome = combined:match("([%d,]+)%s*EU/t")
+            amperage = combined:match("%(%*%s*(%d+)%s*A%)") or combined:match("(%d+)%s*A")
+            tier = combined:match("Tier:%s*(%a+)")
+        end
+
+        -- Parallel support
+        if line:find("Maximum Parallel") then
+            local parallel = line:match("Maximum Parallel:%s*(%d+)")
+            if parallel then
+                table.insert(fields, string.format("max_parallel=%s", tonumber(parallel)))
             end
         end
     end
+
     -- Final cleanup and insertion
     local energy = energyIncome and tonumber((energyIncome:gsub(",", ""))) or 0
     local ampNum = amperage and tonumber(amperage) or 0
+    table.insert(fields, string.format("problems=%s", tonumber(problems) or 0))
     table.insert(fields, string.format("energyIncome=%s", energy))
     table.insert(fields, string.format("amperage=%s", ampNum))
     table.insert(fields, string.format('tier="%s"', escape(tier or "N/A")))
-    local output = table.concat(fields, ",")
-    return output 
+
+    return table.concat(fields, ",")
 end
+
 local function exportAllMachines()
     local postString = ""
     for addr, comp in pairs(component.list()) do
