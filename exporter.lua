@@ -402,7 +402,7 @@ local function parseSensorFields(sensorData, name, coord, owner)
         -- Problems
         if line:find("Problems") then
             if line:find("Has Problems") then problems = "1" end
-            local code = line:match("c(%d+)")
+            local code = line:match("Problems:%s*(%d+)")
             if code then problems = code end
         end
 
