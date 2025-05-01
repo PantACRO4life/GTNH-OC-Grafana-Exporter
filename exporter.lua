@@ -501,7 +501,7 @@ local function parseCustomItems()
         end
     end
     file:close()
-    print("Custom item filter from file loaded.")
+    print("[" .. os.time() .. "] Custom item filter from file loaded.")
     return items
 end
 local function main()
