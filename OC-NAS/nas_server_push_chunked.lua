@@ -15,6 +15,20 @@ modem.open(port)
 
 print("[NAS] Chunked push server running on port " .. port)
 
+local function keyboardEvent(eventName, keyboardAddress, charNum, codeNum, playerName)
+  if charNum == 113 then
+      needExitFlag = true
+      return false
+  end
+end
+local function initEvents()
+  needExitFlag = false
+end
+local function hookEvents()
+  event.listen("key_up", keyboardEvent)
+end
+hookEvents()
+
 -- Helpers
 local function readTimestamp(file)
   local f = io.open(file, "r")
@@ -165,6 +179,7 @@ end
 
 -- Main loop
 while true do
+  if needExitFlag then break end
   local evt = { event.pull(0.5, "modem_message") }
   local from = evt[3]
   local msg = evt[6]

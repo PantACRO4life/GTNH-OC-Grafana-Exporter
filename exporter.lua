@@ -120,7 +120,7 @@ local function exportItems2(interface, allItemIds)
     local postString = ""
     local currLength = 0
     if config.enableCustomItems then
-        for _, item in ipairs(customItems) do
+        for _, item in ipairs(allItemIds) do
             local result
             if item.damage then
                 result = interface.getItemInNetwork(item.name, item.damage)

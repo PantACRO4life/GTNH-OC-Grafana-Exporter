@@ -17,6 +17,20 @@ modem.broadcast(port, "hello", hostname)
 
 local fileBuffer = {}
 
+local function keyboardEvent(eventName, keyboardAddress, charNum, codeNum, playerName)
+  if charNum == 113 then
+      needExitFlag = true
+      return false
+  end
+end
+local function initEvents()
+  needExitFlag = false
+end
+local function hookEvents()
+  event.listen("key_up", keyboardEvent)
+end
+hookEvents()
+
 local function saveFile(filename, content)
   local path = "/home/" .. filename
   local f = io.open(path, "wb")
@@ -55,6 +69,7 @@ end
 print("[Client] Waiting for file commands...")
 
 while true do
+  if needExitFlag then break end
   local ev = { event.pull(1, "modem_message") }
   checkRegistration()
 
