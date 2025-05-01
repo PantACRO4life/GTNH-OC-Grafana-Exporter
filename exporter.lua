@@ -542,7 +542,7 @@ local function main()
                 checkForUpdate()
                 lastChecktTime = os.time()
             end
-            if not config.enableCustomItems and config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
+            if (not config.enableCustomItems) and config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
                 allItemIds = {}
                 updateItemIds(allItemIds, interface)
                 lastAllItemsTime = os.time()
