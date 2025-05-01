@@ -501,6 +501,7 @@ local function parseCustomItems()
         end
     end
     file:close()
+    print("Custom item filter from file loaded.")
     return items
 end
 local function main()
@@ -532,7 +533,7 @@ local function main()
     -- end
     local allItemIds = {}
     if enableCustomItems then
-        allItemIds = parceCustomItems()
+        allItemIds = parseCustomItems()
     end
     while true do
         if needExitFlag then break end    
