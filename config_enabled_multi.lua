@@ -34,6 +34,9 @@ local config = {
     itemMaxExport = 2500,
     --- Interval (in seconds) between using allItems to update the list of items to export (attempting to fix a crash)
     allItemsInterval = 1800,
+    -- Item Filtering:
+    enableCustomItems = true,
+    customItemFile = "/home/Custom_Items.txt",
 
     -- Fluids:
     --- The DB to export fluid data into

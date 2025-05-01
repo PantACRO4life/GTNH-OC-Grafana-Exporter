@@ -119,21 +119,43 @@ end
 local function exportItems2(interface, allItemIds)
     local postString = ""
     local currLength = 0
-    for id, _ in pairs(allItemIds) do
-        local currReturn = interface.getItemsInNetworkById({id})
-        for _, item in pairs(currReturn) do
-            if item["size"] >= config.itemThreshold then
-                if item["label"]:find("^drop of") == nil then
-                    currLength = currLength + 1
-                    postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
-                    -- Used to ensure we don't have overly long requests
-                    if currLength >= config.itemMaxExport then
-                        if config.enableDebug then
-                            print(postString)
+    if config.enableCustomItems then
+        for _, item in ipairs(customItems) do
+            local result
+            if item.damage then
+                result = interface.getItemInNetwork(item.name, item.damage)
+            else
+                result = interface.getItemInNetwork(item.name)
+            end
+
+            if result then
+                local label = sanitize(result["label"] or item.name)
+                currLength = currLength + 1
+                postString = postString .. config.itemMeasurement .. ",item=" .. label .. " amount=" .. capInt(result["size"]) .. "i\n"
+                if currLength >= config.itemMaxExport then
+                    internet.request(config.dbURL .. config.itemDB, postString)()
+                    currLength = 0
+                    postString = ""
+                end
+            end
+        end
+    else
+        for id, _ in pairs(allItemIds) do
+            local currReturn = interface.getItemsInNetworkById({id})
+            for _, item in pairs(currReturn) do
+                if item["size"] >= config.itemThreshold then
+                    if item["label"]:find("^drop of") == nil then
+                        currLength = currLength + 1
+                        postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
+                        -- Used to ensure we don't have overly long requests
+                        if currLength >= config.itemMaxExport then
+                            if config.enableDebug then
+                                print(postString)
+                            end
+                            internet.request(config.dbURL .. config.itemDB, postString)()
+                            currLength = 0
+                            postString = ""
                         end
-                        internet.request(config.dbURL .. config.itemDB, postString)()
-                        currLength = 0
-                        postString = ""
                     end
                 end
             end
@@ -462,6 +484,25 @@ local function exportAllMachines()
     end
     safeRequest(config.dbURL .. config.multiblockDB, postString)
 end
+local function parseCustomItems()
+    local items = {}
+    local filePath = config.customItemFile
+    local file = io.open(filePath, "r")
+    if not file then
+        print("Warning: Custom item file not found: " .. filePath)
+        return items
+    end
+    for line in file:lines() do
+        local name, damage = line:match("^(.+)%/(%d+)$")
+        if name and damage then
+            table.insert(items, { name = name, damage = tonumber(damage) })
+        else
+            table.insert(items, { name = line })
+        end
+    end
+    file:close()
+    return items
+end
 local function main()
     initEvents()
     checkForUpdate()
@@ -490,6 +531,9 @@ local function main()
     --    assert(lsc.getName() == "multimachine.supercapacitor", "A GT machine (maybe a cable) other than a LSC controller was found!")
     -- end
     local allItemIds = {}
+    if enableCustomItems then
+        allItemIds = parceCustomItems()
+    end
     while true do
         if needExitFlag then break end    
         while not needExitFlag do
@@ -497,7 +541,7 @@ local function main()
                 checkForUpdate()
                 lastChecktTime = os.time()
             end
-            if config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
+            if not enableCustomItems and config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
                 allItemIds = {}
                 updateItemIds(allItemIds, interface)
                 lastAllItemsTime = os.time()
