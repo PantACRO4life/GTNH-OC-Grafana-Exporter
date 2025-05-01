@@ -1,6 +1,5 @@
 local files = {
     "exporter.lua",
-    "Custom_Items.txt",
     "config_enabled_energy.lua",
     "config_enabled_fluids.lua",
     "config_enabled_items.lua",
