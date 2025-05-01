@@ -532,7 +532,7 @@ local function main()
     --    assert(lsc.getName() == "multimachine.supercapacitor", "A GT machine (maybe a cable) other than a LSC controller was found!")
     -- end
     local allItemIds = {}
-    if enableCustomItems then
+    if config.enableCustomItems then
         allItemIds = parseCustomItems()
     end
     while true do
@@ -542,7 +542,7 @@ local function main()
                 checkForUpdate()
                 lastChecktTime = os.time()
             end
-            if not enableCustomItems and config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
+            if not config.enableCustomItems and config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
                 allItemIds = {}
                 updateItemIds(allItemIds, interface)
                 lastAllItemsTime = os.time()
