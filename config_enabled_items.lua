@@ -20,7 +20,11 @@ local config = {
     enableCpus = false,
     --- Whether to export multiblock machine data
     enableMultiblocks = false,
-
+    
+    -- Item Filtering:
+    enableCustomItems = true,
+    customItemFile = "/home/Custom_Items.txt",
+    
     -- Items:
     --- The DB to export item data into
     itemDB = "gtnh",
