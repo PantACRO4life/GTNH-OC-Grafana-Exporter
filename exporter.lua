@@ -119,25 +119,31 @@ end
 local function exportItems2(interface, allItemIds)
     local postString = ""
     local currLength = 0
-    local targetIds = allItemIds
 
-    if config.enableCustomItems then
-        targetIds = loadCustomItemIds(config.customItemFile)
-    end
+    for fullId, _ in pairs(allItemIds) do
+        local result = {}
+        if fullId:find(":") and fullId:find(":") ~= #fullId then
+            -- ID with damage value
+            local name, dmg = fullId:match("([^:]+:[^:]+):(%d+)")
+            if name and dmg then
+                result = interface.getItemInNetwork(name, tonumber(dmg))
+                if result then result = { result } else result = {} end
+            end
+        else
+            -- ID without damage
+            result = interface.getItemInNetwork(fullId)
+            if result then result = { result } else result = {} end
+        end
 
-    for id, _ in pairs(targetIds) do
-        local currReturn = interface.getItemsInNetworkById({id})
-        for _, item in pairs(currReturn) do
-            if item["size"] >= config.itemThreshold then
-                if item["label"]:find("^drop of") == nil then
-                    currLength = currLength + 1
-                    postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
-                    if currLength >= config.itemMaxExport then
-                        if config.enableDebug then print(postString) end
-                        internet.request(config.dbURL .. config.itemDB, postString)()
-                        currLength = 0
-                        postString = ""
-                    end
+        for _, item in ipairs(result) do
+            if item["size"] >= config.itemThreshold and not item["label"]:find("^drop of") then
+                currLength = currLength + 1
+                postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
+                if currLength >= config.itemMaxExport then
+                    if config.enableDebug then print(postString) end
+                    internet.request(config.dbURL .. config.itemDB, postString)()
+                    postString = ""
+                    currLength = 0
                 end
             end
         end
@@ -148,6 +154,7 @@ local function exportItems2(interface, allItemIds)
         internet.request(config.dbURL .. config.itemDB, postString)()
     end
 end
+
 
 local function updateItemIds(arr, interface)
     local itemIter = interface.allItems()
@@ -524,14 +531,26 @@ local function main()
                 checkForUpdate()
                 lastChecktTime = os.time()
             end
-            if config.enableItems and os.time() > lastAllItemsTime + config.allItemsInterval then
-                allItemIds = {}
-                updateItemIds(allItemIds, interface)
-                lastAllItemsTime = os.time()
-                if config.enableLogging then
-                    print("[" .. os.time() .. "] Set item IDs; free RAM: " .. computer.freeMemory() .. " bytes")
+            if config.enableItems then
+                if config.enableCustomItems then
+                    if not allItemIds or not next(allItemIds) then
+                        allItemIds = loadCustomItemIds("/home/Custom_Items.txt")
+                        if config.enableLogging then
+                            print("[" .. os.time() .. "] Loaded custom item IDs.")
+                        end
+                    end
+                elseif os.time() > lastAllItemsTime + config.allItemsInterval then
+                    allItemIds = {}
+                    updateItemIds(allItemIds, interface)
+                    lastAllItemsTime = os.time()
+                    if config.enableLogging then
+                        print("[" .. os.time() .. "] Refreshed item IDs; free RAM: " .. computer.freeMemory() .. " bytes")
+                    end
                 end
+            
+                exportItems2(interface, allItemIds)
             end
+            
             if config.enableItems and os.time() > lastItemTime + config.itemInterval then
                 --exportItems(interface)
                 exportItems2(interface, allItemIds)
