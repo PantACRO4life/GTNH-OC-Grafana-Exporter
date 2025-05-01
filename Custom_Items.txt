@@ -1,0 +1,4 @@
+# GTNH custom items to export
+gregtech:metaitem.01/2844
+gregtech:metaitem.01/1001
+minecraft:stone
