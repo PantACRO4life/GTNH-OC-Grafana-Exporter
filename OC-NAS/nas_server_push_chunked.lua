@@ -7,7 +7,7 @@ local computer = require("computer")
 
 local port = 1234
 local basePath = "/home/"
-local universalFiles = { "exporter.lua" }
+local universalFiles = { "exporter.lua", "Custom_Items.txt" }
 local configPrefix = "config_enabled_"
 
 local clients = {} -- [hostname] = { address = "", role = "", lastSent = {} }
