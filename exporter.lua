@@ -119,18 +119,21 @@ end
 local function exportItems2(interface, allItemIds)
     local postString = ""
     local currLength = 0
-    for id, _ in pairs(allItemIds) do
+    local targetIds = allItemIds
+
+    if config.enableCustomItems then
+        targetIds = loadCustomItemIds(config.customItemFile)
+    end
+
+    for id, _ in pairs(targetIds) do
         local currReturn = interface.getItemsInNetworkById({id})
         for _, item in pairs(currReturn) do
             if item["size"] >= config.itemThreshold then
                 if item["label"]:find("^drop of") == nil then
                     currLength = currLength + 1
                     postString = postString .. config.itemMeasurement .. ",item=" .. sanitize(item["label"]) .. " amount=" .. capInt(item["size"]) .. "i\n"
-                    -- Used to ensure we don't have overly long requests
                     if currLength >= config.itemMaxExport then
-                        if config.enableDebug then
-                            print(postString)
-                        end
+                        if config.enableDebug then print(postString) end
                         internet.request(config.dbURL .. config.itemDB, postString)()
                         currLength = 0
                         postString = ""
@@ -139,13 +142,13 @@ local function exportItems2(interface, allItemIds)
             end
         end
     end
+
     if currLength > 0 then
-        if config.enableDebug then
-            print(postString)
-        end
+        if config.enableDebug then print(postString) end
         internet.request(config.dbURL .. config.itemDB, postString)()
     end
 end
+
 local function updateItemIds(arr, interface)
     local itemIter = interface.allItems()
     local currIdx = 1
@@ -160,6 +163,30 @@ local function updateItemIds(arr, interface)
         end
     end
 end
+local function loadCustomItemIds(path)
+    local ids = {}
+    local file = io.open(path, "r")
+    if not file then
+        print("Warning: Custom item file not found: " .. path)
+        return ids
+    end
+    for line in file:lines() do
+        line = line:match("^%s*(.-)%s*$") -- trim whitespace
+        if line ~= "" and not line:match("^%s*#") then
+            if line:find("/") then
+                local name, meta = line:match("^(.-)/(%d+)$")
+                if name and meta then
+                    ids[name .. ":" .. meta] = true
+                end
+            else
+                ids[line] = true
+            end
+        end
+    end
+    file:close()
+    return ids
+end
+
 local function exportEssentia()
     local interface = safeComponent("me_interface")
     if not interface then return end
